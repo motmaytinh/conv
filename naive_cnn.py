@@ -134,8 +134,17 @@ class Model(object):
                 self.backward(dout)
                 i += batch_size
 
+    def evaluate(self, Xtest, ytest):
+        predictlst = self.predict(Xtest)
+        count = np.sum(predictlst == ytest)
+        return count/len(ytest)
+
     def predict(self, Xtest):
-        return self.forward(Xtest, 'test')
+        lst = self.forward(Xtest, 'test')
+        predicted = []
+        for i in lst:
+            predicted.append(index(max(a)))
+        return predicted
         
 
 
@@ -177,7 +186,7 @@ def main():
 
     model.fit(X, y, 2, 10)
 
-    print(model.predict(np.random.randn(10, 1, 28, 28)))
+    print(model.evaluate(np.random.randn(10, 1, 28, 28), np.random.choice(9, 10)))
 
 
 if __name__ == "__main__":
