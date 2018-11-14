@@ -195,6 +195,5 @@ def dropout_backward(dout, cache):
 def softmax(x):
     shifted_logits = x - np.max(x, axis=1, keepdims=True)
     Z = np.sum(np.exp(shifted_logits), axis=1, keepdims=True)
-    log_probs = shifted_logits - np.log(Z)
-    probs = np.exp(log_probs)
+    probs = shifted_logits/Z
     return probs

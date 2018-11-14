@@ -180,7 +180,7 @@ def main():
     # FC
     model.add(FullyConnected(hidden_dim=1024, num_classes=10))
 
-    model.fit(X, y, 1, 10)
+    model.fit(X, y, 3, 10)
 
     print(model.evaluate(np.random.randn(10, 1, 28, 28), np.random.choice(9, 10)))
 
