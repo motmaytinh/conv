@@ -1,12 +1,13 @@
 import cupy as np
-from src_CNN_cupy.layers import *
-from src_CNN_cupy.fast_layers import *
+from src_CNN.layers import *
+from src_CNN.fast_layers import *
 
-learning_rate = 0.1
+learning_rate = 0.01
 
 
 class Conv2D(object):
-    def __init__(self, filters=64, in_channel = 1, kernel_size=3, padding=1, stride=2):
+    def __init__(self, filters=64, in_channel=1, kernel_size=3, padding=1, stride=2, learning_rate=learning_rate):
+        self.learning_rate = learning_rate
         self.stride = stride
         self.pad = padding
         w_shape = (filters, in_channel, kernel_size, kernel_size)
@@ -20,9 +21,9 @@ class Conv2D(object):
 
     def backward(self, dout, learning_rate=learning_rate):
         dx, dw, db = conv_backward_fast(dout, self.cache)
-        self.x -= learning_rate * dx
-        self.w -= learning_rate * dw
-        self.b -= learning_rate * db
+        self.x -= self.learning_rate * dx
+        self.w -= self.learning_rate * dw
+        self.b -= self.learning_rate * db
         return dx
 
 
@@ -67,7 +68,8 @@ class Dropout(object):
 
 
 class FullyConnected(object):
-    def __init__(self, hidden_dim=32, num_classes=10, weight_scale=0.01):
+    def __init__(self, hidden_dim=32, num_classes=10, weight_scale=0.01, learning_rate=learning_rate):
+        self.learning_rate = learning_rate
         self.w = weight_scale * np.random.randn(hidden_dim, num_classes)
         self.b = np.zeros(num_classes)
 
@@ -82,12 +84,12 @@ class FullyConnected(object):
         # self.b += learning_rate * db
 
         # TODO : clear + or -
-        self.w -= learning_rate * dw
-        self.b -= learning_rate * db
+        self.w -= self.learning_rate * dw
+        self.b -= self.learning_rate * db
         return dx
 
 
-class Model(object):
+class FastCNN(object):
     def __init__(self):
         self.layers = []
         self.layers_out = []
@@ -103,7 +105,7 @@ class Model(object):
             loss, dx = softmax_loss(out, label)
             print(loss)
             return dx
-        
+
         for layer in self.layers[1:]:
             if isinstance(layer, Dropout):
                 out = layer.forward(out, mode='test')
@@ -145,14 +147,14 @@ class Model(object):
 def main():
     # X = np.random.randn(100, 3, 32, 32) * 100
 
-    X = np.random.randn(100, 1, 28, 28)
+    X = np.random.randn(10, 1, 28, 28)
 
-    y = np.random.choice(9, 100)
+    y = np.random.choice(9, 10)
 
-    model = Model()
+    model = FastCNN()
 
     # Conv
-    model.add(Conv2D(filters=32, in_channel = 1, kernel_size=5, stride=1, padding=2))
+    model.add(Conv2D(filters=32, in_channel = 1, kernel_size=5, stride=1, padding=2, learning_rate= 0.01))
 
     # ReLU
     model.add(ReLU())
@@ -161,7 +163,7 @@ def main():
     model.add(MaxPooling(pool_size=2, stride=1))
 
     # Conv
-    model.add(Conv2D(filters=64, in_channel = 1, kernel_size=5, stride=1, padding=2))
+    model.add(Conv2D(filters=64, in_channel = 32, kernel_size=5, stride=1, padding=2, learning_rate= 0.01))
 
     # ReLU
     model.add(ReLU())
@@ -170,15 +172,15 @@ def main():
     model.add(MaxPooling(pool_size=2, stride=1))
 
     # FC
-    model.add(FullyConnected(hidden_dim=43264, num_classes=1024))
+    model.add(FullyConnected(hidden_dim=43264, num_classes=1024, learning_rate= 0.01))
 
     # DropOut
     model.add(Dropout(0.5))
 
     # FC
-    model.add(FullyConnected(hidden_dim=1024, num_classes=10))
+    model.add(FullyConnected(hidden_dim=1024, num_classes=10, learning_rate= 0.01))
 
-    model.fit(X, y, 2, 10)
+    model.fit(X, y, 1, 10)
 
     print(model.predict(np.random.randn(10, 1, 28, 28)))
 

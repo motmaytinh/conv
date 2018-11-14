@@ -58,39 +58,16 @@ def relu_forward(x):
 
 
 def dropout_forward(x, dropout_param):
-    """
-    Performs the forward pass for (inverted) dropout.
-    Inputs:
-    - x: Input data, of any shape
-    - dropout_param: A dictionary with the following keys:
-      - p: Dropout parameter. We drop each neuron output with probability p.
-      - mode: 'test' or 'train'. If the mode is train, then perform dropout;
-        if the mode is test, then just return the input.
-      - seed: Seed for the random number generator. Passing seed makes this
-        function deterministic, which is needed for gradient checking but not
-        in real networks.
-    Outputs:
-    - out: Array of the same shape as x.
-    - cache: tuple (dropout_param, mask). In training mode, mask is the dropout
-      mask that was used to multiply the input; in test mode, mask is None.
-    """
     p, mode = dropout_param['p'], dropout_param['mode']
 
     mask = None
     out = None
 
     if mode == 'train':
-        #######################################################################
-        # TODO: Implement training phase forward pass for inverted dropout.   #
-        # Store the dropout mask in the mask variable.                        #
-        #######################################################################
 
         mask = (np.random.rand(*x.shape) < p) / p
         out = x * mask
 
-        #######################################################################
-        #                           END OF YOUR CODE                          #
-        #######################################################################
     elif mode == 'test':
 
         out = x
@@ -102,31 +79,10 @@ def dropout_forward(x, dropout_param):
 
 
 def fully_connected_forward(x, w, b):
-    """
-    Computes the forward pass for an affine (fully-connected) layer.
-    The input x has shape (N, d_1, ..., d_k) and contains a minibatch of N
-    examples, where each example x[i] has shape (d_1, ..., d_k). We will
-    reshape each input into a vector of dimension D = d_1 * ... * d_k, and
-    then transform it to an output vector of dimension M.
-    Inputs:
-    - x: A numpy array containing input data, of shape (N, d_1, ..., d_k)
-    - w: A numpy array of weights, of shape (D, M)
-    - b: A numpy array of biases, of shape (M,)
-    Returns a tuple of:
-    - out: output, of shape (N, M)
-    - cache: (x, w, b)
-    """
     out = None
-    ###########################################################################
-    # TODO: Implement the affine forward pass. Store the result in out. You   #
-    # will need to reshape the input into rows.                               #
-    ###########################################################################
 
     out = x.reshape(x.shape[0], -1).dot(w) + b
 
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
     cache = (x, w, b)
     return out, cache
 
