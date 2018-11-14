@@ -128,10 +128,10 @@ def max_pool_backward_naive(dout, cache):
 
   dx = np.zeros_like(x)
 
-  for n in xrange(N):
-    for c in xrange(C):
-      for h in xrange(H_prime):
-        for w in xrange(W_prime):
+  for n in range(N):
+    for c in range(C):
+      for h in range(H_prime):
+        for w in range(W_prime):
           h1 = h * stride
           h2 = h * stride + pool_height
           w1 = w * stride
