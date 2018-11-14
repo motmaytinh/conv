@@ -2,7 +2,7 @@ import numpy as np
 from src_CNN.layers import *
 from src_CNN.fast_layers import *
 
-learning_rate = 0.1
+learning_rate = 0.01
 
 
 class Conv2D(object):
@@ -72,12 +72,12 @@ class FullyConnected(object):
         self.b = np.zeros(num_classes)
 
     def forward(self, input):
-        out, self.cache = affine_forward(input, self.w, self.b)
+        out, self.cache = fully_connected_forward(input, self.w, self.b)
         self.x, self.w, self.b = self.cache
         return out
 
     def backward(self, dout, learning_rate = learning_rate):
-        dx, dw, db = affine_backward(dout, self.cache)
+        dx, dw, db = fully_connected_backward(dout, self.cache)
         # self.w += learning_rate * dw
         # self.b += learning_rate * db
 
