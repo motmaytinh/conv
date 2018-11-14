@@ -117,28 +117,32 @@ def relu_backward(dout, cache):
     return dx
 
 def max_pool_backward_naive(dout, cache):
-    dx = None
+  dx = None
+  (x, pool_param) = cache
+  (N, C, H, W) = x.shape
+  pool_height = pool_param['pool_height']
+  pool_width = pool_param['pool_width']
+  stride = pool_param['stride']
+  H_prime = 1 + (H - pool_height) / stride
+  W_prime = 1 + (W - pool_width) / stride
 
-    # Extract constants and shapes
-    x, pool_param = cache
-    N, C, H, W = x.shape
-    HH = pool_param.get('pool_height', 2)
-    WW = pool_param.get('pool_width', 2)
-    stride = pool_param.get('stride', 2)
-    H_prime = 1 + (H - HH) // stride
-    W_prime = 1 + (W - WW) // stride
-    # Construct output
-    dx = np.zeros_like(x)
-    # Naive Loops
-    for n in range(N):
-        for c in range(C):
-            for j in range(H_prime):
-                for i in range(W_prime):
-                    ind = np.argmax(x[n, c, j*stride:j*stride+HH, i*stride:i*stride+WW])
-                    ind1, ind2 = np.unravel_index(ind, (HH, WW))
-                    dx[n, c, j*stride:j*stride+HH, i*stride:i*stride+WW][ind1, ind2] = dout[n, c, j, i]
+  dx = np.zeros_like(x)
 
-    return dx
+  for n in xrange(N):
+    for c in xrange(C):
+      for h in xrange(H_prime):
+        for w in xrange(W_prime):
+          h1 = h * stride
+          h2 = h * stride + pool_height
+          w1 = w * stride
+          w2 = w * stride + pool_width
+          window = x[n, c, h1:h2, w1:w2]
+          window2 = np.reshape(window, (pool_height*pool_width))
+          window3 = np.zeros_like(window2)
+          window3[np.argmax(window2)] = 1
+
+          dx[n,c,h1:h2,w1:w2] = np.reshape(window3,(pool_height,pool_width)) * dout[n,c,h,w]
+  return dx
 
 
 
