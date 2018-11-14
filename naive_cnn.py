@@ -32,7 +32,7 @@ class MaxPooling(object):
 
     def forward(self, input):
         out, self.cache = max_pool_forward_naive(input, {'stride': self.stride, 'pool_width': self.size,
-                                                         'pool_width': self.size})
+                                                         'pool_height': self.size})
         return out
 
     def backward(self, dout):

@@ -26,44 +26,25 @@ def conv_forward_naive(x, w, b, conv_param):
 
 
 def max_pool_forward_naive(x, pool_param):
-    """
-    A naive implementation of the forward pass for a max pooling layer.
-    Inputs:
-    - x: Input data, of shape (N, C, H, W)
-    - pool_param: dictionary with the following keys:
-      - 'pool_height': The height of each pooling region
-      - 'pool_width': The width of each pooling region
-      - 'stride': The distance between adjacent pooling regions
-    Returns a tuple of:
-    - out: Output data
-    - cache: (x, pool_param)
-    """
-    out = None
-    ###########################################################################
-    # TODO: Implement the max pooling forward pass                            #
-    ###########################################################################
+    (N, C, H, W) = x.shape
 
-    # Extract shapes and constants
-    N, C, H, W = x.shape
-    HH = pool_param.get('pool_height', 2)
-    WW = pool_param.get('pool_width', 2)
-    stride = pool_param.get('stride', 2)
-    assert (H - HH) % stride == 0, 'Sanity Check Status: Max Pool Failed in Height'
-    assert (W - WW) % stride == 0, 'Sanity Check Status: Max Pool Failed in Width'
-    H_prime = 1 + (H - HH) // stride
-    W_prime = 1 + (W - WW) // stride
-    # Construct output
-    out = np.zeros((N, C, H_prime, W_prime))
-    # Naive Loops
-    for n in range(N):
-        for j in range(H_prime):
-            for i in range(W_prime):
-                out[n, :, j, i] = np.amax(x[n, :, j*stride:j*stride+HH, i*stride:i*stride+WW], axis=(-1, -2))
+    pool_height, pool_width, stride = pool_param['pool_height'], pool_param['pool_width'], pool_param['stride']
 
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    Hout = 1 + (H - pool_height) // stride
+    Wout = 1 + (W - pool_width) // stride
+
+    out = np.zeros((N, C, Hout, Wout))
+
+    for idx_image, each_image in enumerate(x):
+        for i_H in range(Hout):
+            for i_W in range(Wout):
+                each_window_channels = each_image[:, i_H * stride: i_H * stride + pool_height,
+                                       i_W * stride: i_W * stride + pool_width]
+
+                out[idx_image, :, i_H, i_W] = each_window_channels.max(axis=(1, 2))  # maxpooling
+
     cache = (x, pool_param)
+
     return out, cache
 
 
