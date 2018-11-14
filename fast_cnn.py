@@ -11,7 +11,7 @@ class Conv2D(object):
         self.pad = padding
         w_shape = (filters, in_channel, kernel_size, kernel_size)
         self.w = np.linspace(-0.2, 0.3, num=np.prod(w_shape)).reshape(w_shape)
-        self.b = np.linspace(-0.1, 0.2, num=3)
+        self.b = np.linspace(-0.1, 0.2, num=filters)
 
     def forward(self, input):
         out, self.cache = conv_forward_fast(input, self.w, self.b, {'stride': self.stride, 'pad': self.pad})
@@ -33,7 +33,7 @@ class MaxPooling(object):
 
     def forward(self, input):
         out, self.cache = max_pool_forward_fast(input, {'stride': self.stride, 'pool_width': self.size,
-                                                         'pool_width': self.size})
+                                                         'pool_height': self.size})
         return out
 
     def backward(self, dout):
@@ -97,22 +97,39 @@ class Model(object):
 
     def forward(self, input, mode, label=None):
         out = self.layers[0].forward(input)
-        for layer in self.layers[1:]:
-            out = layer.forward(out)
         if mode == 'train':
+            for layer in self.layers[1:]:
+                out = layer.forward(out)
             loss, dx = softmax_loss(out, label)
             print(loss)
-        return dx
+            return dx
+        
+        for layer in self.layers[1:]:
+            if isinstance(layer, Dropout):
+                out = layer.forward(out, mode='test')
+            else:
+                out = layer.forward(out)
+        return softmax(out)
 
     def backward(self, input):
         dout = self.layers[-1].backward(input)
         for layer in reversed(self.layers[:-1]):
             dout = layer.backward(dout)
 
-    def fit(self, Xtrain, ytrain, epoch):
-        for i in range(epoch):
-            dout = self.forward(Xtrain, 'train', ytrain)
-            self.backward(dout)
+    def fit(self, Xtrain, ytrain, epoch, batch_size):
+        n = len(Xtrain)
+        if not n % batch_size == 0:
+            raise ValueError("Batch size must be multiple of number of inputs")
+        for e in range(epoch):
+            i = 0
+            print("== EPOCH: ", e+1, "/", epoch, " ==")
+            while i != n:
+                dout = self.forward(Xtrain[i:i+batch_size], 'train', ytrain[i:i+batch_size])
+                self.backward(dout)
+                i += batch_size
+
+    def predict(self, Xtest):
+        return self.forward(Xtest, 'test')
 
 
 def main():
@@ -125,7 +142,7 @@ def main():
     model = Model()
 
     # Conv
-    model.add(Conv2D(filters=1, in_channel = 1, kernel_size=3, stride=2, padding=1))
+    model.add(Conv2D(filters=32, in_channel = 1, kernel_size=5, stride=1, padding=2))
 
     # ReLU
     model.add(ReLU())
@@ -133,16 +150,27 @@ def main():
     # MaxPool
     model.add(MaxPooling(pool_size=2, stride=1))
 
-    # DropOut
-    model.add(Dropout(0.3))
+    # Conv
+    model.add(Conv2D(filters=64, in_channel = 1, kernel_size=5, stride=1, padding=2))
 
     # ReLU
     model.add(ReLU())
 
-    # FC
-    model.add(FullyConnected(hidden_dim=196, num_classes=10))
+    # MaxPool
+    model.add(MaxPooling(pool_size=2, stride=1))
 
-    model.fit(X, y, 100)
+    # FC
+    model.add(FullyConnected(hidden_dim=43264, num_classes=1024))
+
+    # DropOut
+    model.add(Dropout(0.5))
+
+    # FC
+    model.add(FullyConnected(hidden_dim=1024, num_classes=10))
+
+    model.fit(X, y, 2, 10)
+
+    print(model.predict(np.random.randn(10, 1, 28, 28)))
 
 
 if __name__ == "__main__":

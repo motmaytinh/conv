@@ -15,10 +15,18 @@ class Conv2D(object):
     def forward(self, input):
         out, self.cache = conv_forward_naive(input, self.w, self.b, {'stride': self.stride, 'pad': self.pad})
         self.x, self.w, self.b, _ = self.cache
+        print('self.x.shape' +str(self.x.shape))
+        print('self.w.shape' +str(self.w.shape))
+        print('self.b.shape' +str(self.b.shape))
+        print(out.shape)
+
         return out
 
     def backward(self, dout, learning_rate=learning_rate):
         dx, dw, db = conv_backward_naive(dout, self.cache)
+        print('dx'+str(dx.shape))
+        print('dw'+str(dw.shape))
+        print('db'+str(db.shape))
         self.x -= learning_rate * dx
         self.w -= learning_rate * dw
         self.b -= learning_rate * db
@@ -136,7 +144,7 @@ def main():
 
     X = np.random.randn(100, 1, 28, 28)
 
-    y = np.random.choice(9, 10)
+    y = np.random.choice(9, 100)
 
     model = Model()
 
