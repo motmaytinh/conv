@@ -117,7 +117,7 @@ class Model(object):
 def main():
     # X = np.random.randn(100, 3, 32, 32) * 100
 
-    X = np.random.randn(100, 3, 32, 32)
+    X = np.random.randn(100, 1, 32, 32)
 
     y = np.random.choice(9, 100)
 
@@ -139,7 +139,7 @@ def main():
     model.add(ReLU())
 
     # FC
-    model.add(FullyConnected(hidden_dim=256, num_classes=10))
+    model.add(FullyConnected(hidden_dim=196, num_classes=10))
 
     model.fit(X, y, 100)
 
