@@ -93,7 +93,7 @@ class FullyConnected(object):
         return dx
 
 
-class Model(object):
+class NaiveCNN(object):
     def __init__(self):
         self.layers = []
         self.layers_out = []
@@ -155,7 +155,7 @@ def main():
 
     y = np.random.choice(9, 100)
 
-    model = Model()
+    model = NaiveCNN()
 
     # Conv
     model.add(Conv2D(filters=32, in_channel = 1, kernel_size=5, stride=1, padding=2))
@@ -167,7 +167,7 @@ def main():
     model.add(MaxPooling(pool_size=2, stride=1))
 
     # Conv
-    model.add(Conv2D(filters=64, in_channel = 1, kernel_size=5, stride=1, padding=2))
+    model.add(Conv2D(filters=64, in_channel = 32, kernel_size=5, stride=1, padding=2))
 
     # ReLU
     model.add(ReLU())
