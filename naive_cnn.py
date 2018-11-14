@@ -1,6 +1,8 @@
 import numpy as np
 from src_CNN.layers import *
-learning_rate = 0.001
+
+learning_rate = 0.1
+
 
 class Conv2D(object):
     def __init__(self, filters=64, kernel_size=3, padding=1, stride=2):
@@ -15,7 +17,7 @@ class Conv2D(object):
         self.x, self.w, self.b, _ = self.cache
         return out
 
-    def backward(self, dout, learning_rate = learning_rate):
+    def backward(self, dout, learning_rate=learning_rate):
         dx, dw, db = conv_backward_naive(dout, self.cache)
         self.x -= learning_rate * dx
         self.w -= learning_rate * dw
@@ -73,10 +75,14 @@ class FullyConnected(object):
         self.x, self.w, self.b = self.cache
         return out
 
-    def backward(self, dout):
+    def backward(self, dout, learning_rate = learning_rate):
         dx, dw, db = affine_backward(dout, self.cache)
-        self.w += dw
-        self.b += db
+        # self.w += learning_rate * dw
+        # self.b += learning_rate * db
+
+        # TODO : clear + or -
+        self.w -= learning_rate * dw
+        self.b -= learning_rate * db
         return dx
 
 
@@ -109,7 +115,10 @@ class Model(object):
 
 
 def main():
+    # X = np.random.randn(100, 3, 32, 32) * 100
+
     X = np.random.randn(100, 3, 32, 32)
+
     y = np.random.choice(9, 100)
 
     model = Model()
@@ -132,7 +141,7 @@ def main():
     # FC
     model.add(FullyConnected(hidden_dim=256, num_classes=10))
 
-    model.fit(X, y, 10)
+    model.fit(X, y, 100)
 
 
 if __name__ == "__main__":
