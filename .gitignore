@@ -1,0 +1,6 @@
+src_CNN/__pycache__
+src_CNN/__pycache__/*
+.idea
+.idea/*
+__pycache__/
+*.pyc
