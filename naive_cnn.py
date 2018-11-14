@@ -51,12 +51,11 @@ class ReLU(object):
 
 
 class Dropout(object):
-    def __init__(self, prob=0.3, mode='train'):
+    def __init__(self, prob=0.3):
         self.prob = prob
-        self.mode = mode
 
-    def forward(self, input):
-        out, self.cache = dropout_forward(input, {'p': self.prob, 'mode': self.mode})
+    def forward(self, input, mode = 'train'):
+        out, self.cache = dropout_forward(input, {'p': self.prob, 'mode': mode})
         _, self.mask = self.cache
         return out
 
@@ -96,12 +95,19 @@ class Model(object):
 
     def forward(self, input, mode, label=None):
         out = self.layers[0].forward(input)
-        for layer in self.layers[1:]:
-            out = layer.forward(out)
         if mode == 'train':
+            for layer in self.layers[1:]:
+                out = layer.forward(out)
             loss, dx = softmax_loss(out, label)
             print(loss)
-        return dx
+            return dx
+        
+        for layer in self.layers[1:]:
+            if isinstance(layer, Dropout):
+                out = layer.forward(out, mode='test')
+            else:
+                out = layer.forward(out)
+        return softmax(out)
 
     def backward(self, input):
         dout = self.layers[-1].backward(input)
@@ -119,6 +125,10 @@ class Model(object):
                 dout = self.forward(Xtrain[i:i+batch_size], 'train', ytrain)
                 self.backward(dout)
                 i += batch_size
+
+    def predict(self, Xtest):
+        return self.forward(Xtest, 'test')
+        
 
 
 def main():
@@ -148,7 +158,9 @@ def main():
     # FC
     model.add(FullyConnected(hidden_dim=196, num_classes=10))
 
-    model.fit(X, y, 10, 100)
+    model.fit(X, y, 3, 100)
+
+    print(model.predict(np.random.randn(10, 1, 28, 28)))
 
 
 if __name__ == "__main__":
