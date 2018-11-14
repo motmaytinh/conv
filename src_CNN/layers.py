@@ -228,52 +228,51 @@ def max_pool_backward_naive(dout, cache):
     return dx
 
 
+
 def conv_backward_naive(dout, cache):
-    """
-    A naive implementation of the backward pass for a convolutional layer.
-    Inputs:
-    - dout: Upstream derivatives of shape (N, F, H', W')
-    - cache: A tuple of (x, w, b, conv_param) as in conv_forward_naive
-    Returns a tuple of:
-    - dx: Gradient with respect to x
-    - dw: Gradient with respect to w
-    - db: Gradient with respect to b
-    """
+
     dx, dw, db = None, None, None
-    ###########################################################################
-    # TODO: Implement the convolutional backward pass.                        #
-    ###########################################################################
-
-    # Extract shapes and constants
     x, w, b, conv_param = cache
+    pad = conv_param["pad"]
+    stride = conv_param["stride"]
     N, C, H, W = x.shape
-    F, _, HH, WW = w.shape
-    stride = conv_param.get('stride', 1)
-    pad = conv_param.get('pad', 0)
-    # Padding
-    x_pad = np.pad(x, ((0, 0), (0, 0), (pad, pad), (pad, pad)), 'constant', constant_values=0)
-    H_prime = 1 + (H + 2 * pad - HH) // stride
-    W_prime = 1 + (W + 2 * pad - WW) // stride
-    # Construct output
-    dx_pad = np.zeros_like(x_pad)
-    dx = np.zeros_like(x)
-    dw = np.zeros_like(w)
-    db = np.zeros_like(b)
-    # Naive Loops
-    for n in range(N):
-        for f in range(F):
-            db[f] += dout[n, f].sum()
-            for j in range(0, H_prime):
-                for i in range(0, W_prime):
-                    dw[f] += x_pad[n, :, j * stride:j * stride + HH, i * stride:i * stride + WW] * dout[n, f, j, i]
-                    dx_pad[n, :, j * stride:j * stride + HH, i * stride:i * stride + WW] += w[f] * dout[n, f, j, i]
-    # Extract dx from dx_pad
-    dx = dx_pad[:, :, pad:pad+H, pad:pad+W]
+    F, C, HH, WW = w.shape
+    Hout = (W - WW + 2 * pad) // stride + 1
+    Wout = (H - HH + 2 * pad) // stride + 1
+    out = np.zeros((N, F, Hout, Wout))
+    x_padded = np.pad(x, [(0, 0), (0, 0), (pad, pad), (pad, pad)], "constant")
 
+    ##########################################################################
+    # TODO: Implement the convolutional backward pass.                       #
+    ##########################################################################
+    dw = np.zeros(w.shape)
+    db = np.zeros(b.shape)
+    dx = np.zeros(x_padded.shape)
+
+    for idx_image, image in enumerate(x_padded): # 4 sample
+        for i_height in range(Hout):
+            for i_width in range(Wout):
+                im_patch = image[:, i_height * stride:i_height * stride + HH,
+                                 i_width * stride:i_width * stride + WW]
+
+                # duplicate to each filter F: number of filter
+                im_patch = np.tile(im_patch, (F, 1, 1, 1))
+
+                # dw += (im_patch * dout[idx_image, :, i_height, i_width].reshape(-1, 1, 1, 1))
+
+                dw += (im_patch * dout[idx_image, :, i_height, i_width].reshape(-1, 1, 1, 1))
+                db += dout[idx_image, :, i_height, i_width]
+                dx[idx_image:idx_image + 1, :, i_height * stride:i_height * stride + HH, i_width * stride:i_width * stride + WW] +=\
+                (w * dout[idx_image, :, i_height, i_width].reshape(-1, 1, 1, 1)).sum(axis=0)
+
+    dx = dx[:, :, pad:-pad, pad:-pad]
+
+    pass
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
     return dx, dw, db
+
 
 def dropout_backward(dout, cache):
     """

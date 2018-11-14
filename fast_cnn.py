@@ -2,7 +2,7 @@ import numpy as np
 from src_CNN.layers import *
 from src_CNN.fast_layers import *
 
-learning_rate = 0.01
+learning_rate = 0.001
 
 
 class Conv2D(object):
@@ -161,7 +161,7 @@ def main():
     model.add(MaxPooling(pool_size=2, stride=1))
 
     # Conv
-    model.add(Conv2D(filters=64, in_channel = 32, kernel_size=5, stride=1, padding=2))
+    model.add(Conv2D(filters=64, in_channel=32, kernel_size=5, stride=1, padding=2))
 
     # ReLU
     model.add(ReLU())
@@ -178,7 +178,7 @@ def main():
     # FC
     model.add(FullyConnected(hidden_dim=1024, num_classes=10))
 
-    model.fit(X, y, 1, 10)
+    model.fit(X, y, 10, 1)
 
     print(model.predict(np.random.randn(10, 1, 28, 28)))
 

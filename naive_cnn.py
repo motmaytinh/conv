@@ -1,11 +1,10 @@
-import numpy as np
 from src_CNN.layers import *
 
 learning_rate = 0.1
 
 
 class Conv2D(object):
-    def __init__(self, filters=64, in_channel = 1, kernel_size=3, padding=1, stride=2):
+    def __init__(self, filters=64, in_channel=1, kernel_size=3, padding=1, stride=2):
         self.stride = stride
         self.pad = padding
         w_shape = (filters, in_channel, kernel_size, kernel_size)
@@ -55,7 +54,7 @@ class Dropout(object):
     def __init__(self, prob=0.3):
         self.prob = prob
 
-    def forward(self, input, mode = 'train'):
+    def forward(self, input, mode='train'):
         out, self.cache = dropout_forward(input, {'p': self.prob, 'mode': mode})
         _, self.mask = self.cache
         return out
@@ -75,7 +74,7 @@ class FullyConnected(object):
         self.x, self.w, self.b = self.cache
         return out
 
-    def backward(self, dout, learning_rate = learning_rate):
+    def backward(self, dout, learning_rate=learning_rate):
         dx, dw, db = fully_connected_backward(dout, self.cache)
         # self.w += learning_rate * dw
         # self.b += learning_rate * db
@@ -102,7 +101,7 @@ class NaiveCNN(object):
             loss, dx = softmax_loss(out, label)
             print(loss)
             return dx
-        
+
         for layer in self.layers[1:]:
             if isinstance(layer, Dropout):
                 out = layer.forward(out, mode='test')
@@ -117,20 +116,22 @@ class NaiveCNN(object):
 
     def fit(self, Xtrain, ytrain, epoch, batch_size):
         n = len(Xtrain)
+
         if not n % batch_size == 0:
             raise ValueError("Batch size must be multiple of number of inputs")
+
         for e in range(epoch):
             i = 0
-            print("== EPOCH: ", e+1, "/", epoch, " ==")
+            print("== EPOCH: ", e + 1, "/", epoch, " ==")
             while i != n:
-                dout = self.forward(Xtrain[i:i+batch_size], 'train', ytrain[i:i+batch_size])
+                dout = self.forward(Xtrain[i:i + batch_size], 'train', ytrain[i:i + batch_size])
                 self.backward(dout)
                 i += batch_size
 
     def evaluate(self, Xtest, ytest):
         predictlst = self.predict(Xtest)
         count = np.sum(predictlst == ytest)
-        return count/len(ytest)
+        return count / len(ytest)
 
     def predict(self, Xtest):
         lst = self.forward(Xtest, 'test')
@@ -139,7 +140,6 @@ class NaiveCNN(object):
             i = i.tolist()
             predicted.append(i.index(max(i)))
         return predicted
-        
 
 
 def main():
@@ -152,7 +152,7 @@ def main():
     model = NaiveCNN()
 
     # Conv
-    model.add(Conv2D(filters=32, in_channel = 1, kernel_size=5, stride=1, padding=2))
+    model.add(Conv2D(filters=32, in_channel=1, kernel_size=5, stride=1, padding=2))
 
     # ReLU
     model.add(ReLU())
@@ -161,7 +161,7 @@ def main():
     model.add(MaxPooling(pool_size=2, stride=1))
 
     # Conv
-    model.add(Conv2D(filters=64, in_channel = 32, kernel_size=5, stride=1, padding=2))
+    model.add(Conv2D(filters=64, in_channel=32, kernel_size=5, stride=1, padding=2))
 
     # ReLU
     model.add(ReLU())
@@ -178,7 +178,7 @@ def main():
     # FC
     model.add(FullyConnected(hidden_dim=1024, num_classes=10))
 
-    model.fit(X, y, 1, 10)
+    model.fit(X, y, 1, 100)
 
     print(model.evaluate(np.random.randn(10, 1, 28, 28), np.random.choice(9, 10)))
 
