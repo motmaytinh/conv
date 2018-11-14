@@ -88,17 +88,6 @@ def fully_connected_forward(x, w, b):
 
 
 def softmax_loss(x, y):
-    """
-    Computes the loss and gradient for softmax classification.
-    Inputs:
-    - x: Input data, of shape (N, C) where x[i, j] is the score for the jth
-      class for the ith input.
-    - y: Vector of labels, of shape (N,) where y[i] is the label for x[i] and
-      0 <= y[i] < C
-    Returns a tuple of:
-    - loss: Scalar giving the loss
-    - dx: Gradient of the loss with respect to x
-    """
     shifted_logits = x - np.max(x, axis=1, keepdims=True)
     Z = np.sum(np.exp(shifted_logits), axis=1, keepdims=True)
     log_probs = shifted_logits - np.log(Z)
@@ -128,18 +117,7 @@ def relu_backward(dout, cache):
     return dx
 
 def max_pool_backward_naive(dout, cache):
-    """
-    A naive implementation of the backward pass for a max pooling layer.
-    Inputs:
-    - dout: Upstream derivatives
-    - cache: A tuple of (x, pool_param) as in the forward pass.
-    Returns:
-    - dx: Gradient with respect to x
-    """
     dx = None
-    ###########################################################################
-    # TODO: Implement the max pooling backward pass                           #
-    ###########################################################################
 
     # Extract constants and shapes
     x, pool_param = cache
@@ -160,9 +138,6 @@ def max_pool_backward_naive(dout, cache):
                     ind1, ind2 = np.unravel_index(ind, (HH, WW))
                     dx[n, c, j*stride:j*stride+HH, i*stride:i*stride+WW][ind1, ind2] = dout[n, c, j, i]
 
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
     return dx
 
 
@@ -179,10 +154,6 @@ def conv_backward_naive(dout, cache):
     Wout = (H - HH + 2 * pad) // stride + 1
     out = np.zeros((N, F, Hout, Wout))
     x_padded = np.pad(x, [(0, 0), (0, 0), (pad, pad), (pad, pad)], "constant")
-
-    ##########################################################################
-    # TODO: Implement the convolutional backward pass.                       #
-    ##########################################################################
     dw = np.zeros(w.shape)
     db = np.zeros(b.shape)
     dx = np.zeros(x_padded.shape)
@@ -204,11 +175,6 @@ def conv_backward_naive(dout, cache):
                 (w * dout[idx_image, :, i_height, i_width].reshape(-1, 1, 1, 1)).sum(axis=0)
 
     dx = dx[:, :, pad:-pad, pad:-pad]
-
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
     return dx, dw, db
 
 
