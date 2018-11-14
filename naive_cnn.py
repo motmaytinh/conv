@@ -122,7 +122,7 @@ class Model(object):
             i = 0
             print("== EPOCH: ", e+1, "/", epoch, " ==")
             while i != n:
-                dout = self.forward(Xtrain[i:i+batch_size], 'train', ytrain)
+                dout = self.forward(Xtrain[i:i+batch_size], 'train', ytrain[i:i+batch_size])
                 self.backward(dout)
                 i += batch_size
 

@@ -75,8 +75,6 @@ def dropout_forward(x, dropout_param):
       mask that was used to multiply the input; in test mode, mask is None.
     """
     p, mode = dropout_param['p'], dropout_param['mode']
-    if 'seed' in dropout_param:
-        np.random.seed(dropout_param['seed'])
 
     mask = None
     out = None
@@ -94,15 +92,8 @@ def dropout_forward(x, dropout_param):
         #                           END OF YOUR CODE                          #
         #######################################################################
     elif mode == 'test':
-        #######################################################################
-        # TODO: Implement the test phase forward pass for inverted dropout.   #
-        #######################################################################
 
         out = x
-
-        #######################################################################
-        #                            END OF YOUR CODE                         #
-        #######################################################################
 
     cache = (dropout_param, mask)
     out = out.astype(x.dtype, copy=False)
