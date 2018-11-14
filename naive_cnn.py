@@ -4,7 +4,8 @@ learning_rate = 0.1
 
 
 class Conv2D(object):
-    def __init__(self, filters=64, in_channel=1, kernel_size=3, padding=1, stride=2):
+    def __init__(self, filters=64, in_channel=1, kernel_size=3, padding=1, stride=2, learning_rate=learning_rate):
+        self.learning_rate = learning_rate
         self.stride = stride
         self.pad = padding
         w_shape = (filters, in_channel, kernel_size, kernel_size)
@@ -17,11 +18,11 @@ class Conv2D(object):
 
         return out
 
-    def backward(self, dout, learning_rate=learning_rate):
+    def backward(self, dout):
         dx, dw, db = conv_backward_naive(dout, self.cache)
-        self.x -= learning_rate * dx
-        self.w -= learning_rate * dw
-        self.b -= learning_rate * db
+        self.x -= self.learning_rate * dx
+        self.w -= self.learning_rate * dw
+        self.b -= self.learning_rate * db
         return dx
 
 
@@ -65,7 +66,7 @@ class Dropout(object):
 
 
 class FullyConnected(object):
-    def __init__(self, hidden_dim=32, num_classes=10, weight_scale=0.01):
+    def __init__(self, hidden_dim=32, num_classes=10, weight_scale=0.01, learning_rate=learning_rate):
         self.w = weight_scale * np.random.randn(hidden_dim, num_classes)
         self.b = np.zeros(num_classes)
 
@@ -74,14 +75,14 @@ class FullyConnected(object):
         self.x, self.w, self.b = self.cache
         return out
 
-    def backward(self, dout, learning_rate=learning_rate):
+    def backward(self, dout):
         dx, dw, db = fully_connected_backward(dout, self.cache)
         # self.w += learning_rate * dw
         # self.b += learning_rate * db
 
         # TODO : clear + or -
-        self.w -= learning_rate * dw
-        self.b -= learning_rate * db
+        self.w -= self.learning_rate * dw
+        self.b -= self.learning_rate * db
         return dx
 
 
@@ -152,7 +153,7 @@ def main():
     model = NaiveCNN()
 
     # Conv
-    model.add(Conv2D(filters=32, in_channel=1, kernel_size=5, stride=1, padding=2))
+    model.add(Conv2D(filters=32, in_channel=1, kernel_size=5, stride=1, padding=2, learning_rate=0.01))
 
     # ReLU
     model.add(ReLU())
@@ -161,7 +162,7 @@ def main():
     model.add(MaxPooling(pool_size=2, stride=1))
 
     # Conv
-    model.add(Conv2D(filters=64, in_channel=32, kernel_size=5, stride=1, padding=2))
+    model.add(Conv2D(filters=64, in_channel=32, kernel_size=5, stride=1, padding=2, learning_rate=0.01))
 
     # ReLU
     model.add(ReLU())
@@ -170,7 +171,7 @@ def main():
     model.add(MaxPooling(pool_size=2, stride=1))
 
     # FC
-    model.add(FullyConnected(hidden_dim=43264, num_classes=1024))
+    model.add(FullyConnected(hidden_dim=43264, num_classes=1024, learning_rate=0.01))
 
     # DropOut
     model.add(Dropout(0.5))
