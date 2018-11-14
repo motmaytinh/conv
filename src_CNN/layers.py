@@ -49,24 +49,10 @@ def max_pool_forward_naive(x, pool_param):
 
 
 def relu_forward(x):
-    """
-    Computes the forward pass for a layer of rectified linear units (ReLUs).
-    Input:
-    - x: Inputs, of any shape
-    Returns a tuple of:
-    - out: Output, of the same shape as x
-    - cache: x
-    """
     out = None
-    ###########################################################################
-    # TODO: Implement the ReLU forward pass.                                  #
-    ###########################################################################
 
     out = np.maximum(0, x)
 
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
     cache = x
     return out, cache
 
@@ -124,7 +110,7 @@ def dropout_forward(x, dropout_param):
     return out, cache
 
 
-def affine_forward(x, w, b):
+def fully_connected_forward(x, w, b):
     """
     Computes the forward pass for an affine (fully-connected) layer.
     The input x has shape (N, d_1, ..., d_k) and contains a minibatch of N
@@ -177,7 +163,7 @@ def softmax_loss(x, y):
     dx /= N
     return loss, dx
 
-def affine_backward(dout, cache):
+def fully_connected_backward(dout, cache):
     """
     Computes the backward pass for an affine layer.
     Inputs:
@@ -206,24 +192,10 @@ def affine_backward(dout, cache):
     return dx, dw, db
 
 def relu_backward(dout, cache):
-    """
-    Computes the backward pass for a layer of rectified linear units (ReLUs).
-    Input:
-    - dout: Upstream derivatives, of any shape
-    - cache: Input x, of same shape as dout
-    Returns:
-    - dx: Gradient with respect to x
-    """
     dx, x = None, cache
-    ###########################################################################
-    # TODO: Implement the ReLU backward pass.                                 #
-    ###########################################################################
 
     dx = (x > 0) * dout
 
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
     return dx
 
 def max_pool_backward_naive(dout, cache):
