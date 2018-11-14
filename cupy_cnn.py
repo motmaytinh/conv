@@ -56,8 +56,8 @@ class Dropout(object):
         self.prob = prob
         self.mode = mode
 
-    def forward(self, input):
-        out, self.cache = dropout_forward(input, {'p': self.prob, 'mode': self.mode})
+    def forward(self, input, mode = 'train'):
+        out, self.cache = dropout_forward(input, {'p': self.prob, 'mode': mode})
         _, self.mask = self.cache
         return out
 
@@ -128,8 +128,18 @@ class Model(object):
                 self.backward(dout)
                 i += batch_size
 
+    def evaluate(self, Xtest, ytest):
+        predictlst = self.predict(Xtest)
+        count = np.sum(predictlst == ytest)
+        return count/len(ytest)
+
     def predict(self, Xtest):
-        return self.forward(Xtest, 'test')
+        lst = self.forward(Xtest, 'test')
+        predicted = []
+        for i in lst:
+            i = i.tolist()
+            predicted.append(i.index(max(i)))
+        return predicted
 
 
 def main():

@@ -15,18 +15,11 @@ class Conv2D(object):
     def forward(self, input):
         out, self.cache = conv_forward_naive(input, self.w, self.b, {'stride': self.stride, 'pad': self.pad})
         self.x, self.w, self.b, _ = self.cache
-        print('self.x.shape' +str(self.x.shape))
-        print('self.w.shape' +str(self.w.shape))
-        print('self.b.shape' +str(self.b.shape))
-        print(out.shape)
 
         return out
 
     def backward(self, dout, learning_rate=learning_rate):
         dx, dw, db = conv_backward_naive(dout, self.cache)
-        print('dx'+str(dx.shape))
-        print('dw'+str(dw.shape))
-        print('db'+str(db.shape))
         self.x -= learning_rate * dx
         self.w -= learning_rate * dw
         self.b -= learning_rate * db
@@ -143,7 +136,8 @@ class NaiveCNN(object):
         lst = self.forward(Xtest, 'test')
         predicted = []
         for i in lst:
-            predicted.append(index(max(a)))
+            i = i.tolist()
+            predicted.append(i.index(max(i)))
         return predicted
         
 
@@ -151,9 +145,9 @@ class NaiveCNN(object):
 def main():
     # X = np.random.randn(100, 3, 32, 32) * 100
 
-    X = np.random.randn(100, 1, 28, 28)
+    X = np.random.randn(10, 1, 28, 28)
 
-    y = np.random.choice(9, 100)
+    y = np.random.choice(9, 10)
 
     model = NaiveCNN()
 
@@ -184,7 +178,7 @@ def main():
     # FC
     model.add(FullyConnected(hidden_dim=1024, num_classes=10))
 
-    model.fit(X, y, 2, 10)
+    model.fit(X, y, 1, 10)
 
     print(model.evaluate(np.random.randn(10, 1, 28, 28), np.random.choice(9, 10)))
 

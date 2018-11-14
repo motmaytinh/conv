@@ -56,8 +56,8 @@ class Dropout(object):
         self.prob = prob
         self.mode = mode
 
-    def forward(self, input):
-        out, self.cache = dropout_forward(input, {'p': self.prob, 'mode': self.mode})
+    def forward(self, input, mode = 'train'):
+        out, self.cache = dropout_forward(input, {'p': self.prob, 'mode': mode})
         _, self.mask = self.cache
         return out
 
@@ -128,16 +128,26 @@ class FastCNN(object):
                 self.backward(dout)
                 i += batch_size
 
+    def evaluate(self, Xtest, ytest):
+        predictlst = self.predict(Xtest)
+        count = np.sum(predictlst == ytest)
+        return count/len(ytest)            
+
     def predict(self, Xtest):
-        return self.forward(Xtest, 'test')
+        lst = self.forward(Xtest, 'test')
+        predicted = []
+        for i in lst:
+            i = i.tolist()
+            predicted.append(i.index(max(i)))
+        return predicted
 
 
 def main():
     # X = np.random.randn(100, 3, 32, 32) * 100
 
-    X = np.random.randn(100, 1, 28, 28)
+    X = np.random.randn(10, 1, 28, 28)
 
-    y = np.random.choice(9, 100)
+    y = np.random.choice(9, 10)
 
     model = FastCNN()
 
@@ -168,7 +178,7 @@ def main():
     # FC
     model.add(FullyConnected(hidden_dim=1024, num_classes=10))
 
-    model.fit(X, y, 2, 10)
+    model.fit(X, y, 1, 10)
 
     print(model.predict(np.random.randn(10, 1, 28, 28)))
 
