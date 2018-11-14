@@ -108,16 +108,23 @@ class Model(object):
         for layer in reversed(self.layers[:-1]):
             dout = layer.backward(dout)
 
-    def fit(self, Xtrain, ytrain, epoch):
-        for i in range(epoch):
-            dout = self.forward(Xtrain, 'train', ytrain)
-            self.backward(dout)
+    def fit(self, Xtrain, ytrain, epoch, batch_size):
+        n = len(Xtrain)
+        if not n % batch_size == 0:
+            raise ValueError("Batch size must be multiple of number of inputs")
+        for e in range(epoch):
+            i = 0
+            print("== EPOCH: ", e+1, "/", epoch, " ==")
+            while i != n:
+                dout = self.forward(Xtrain[i:i+batch_size], 'train', ytrain)
+                self.backward(dout)
+                i += batch_size
 
 
 def main():
     # X = np.random.randn(100, 3, 32, 32) * 100
 
-    X = np.random.randn(100, 1, 32, 32)
+    X = np.random.randn(100, 1, 28, 28)
 
     y = np.random.choice(9, 100)
 
@@ -141,7 +148,7 @@ def main():
     # FC
     model.add(FullyConnected(hidden_dim=196, num_classes=10))
 
-    model.fit(X, y, 100)
+    model.fit(X, y, 10, 100)
 
 
 if __name__ == "__main__":
