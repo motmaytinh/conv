@@ -111,31 +111,13 @@ def softmax_loss(x, y):
     return loss, dx
 
 def fully_connected_backward(dout, cache):
-    """
-    Computes the backward pass for an affine layer.
-    Inputs:
-    - dout: Upstream derivative, of shape (N, M)
-    - cache: Tuple of:
-      - x: Input data, of shape (N, d_1, ... d_k)
-      - w: Weights, of shape (D, M)
-    Returns a tuple of:
-    - dx: Gradient with respect to x, of shape (N, d1, ..., d_k)
-    - dw: Gradient with respect to w, of shape (D, M)
-    - db: Gradient with respect to b, of shape (M,)
-    """
     x, w, b = cache
     dx, dw, db = None, None, None
-    ###########################################################################
-    # TODO: Implement the affine backward pass.                               #
-    ###########################################################################
 
     dx = dout.dot(w.T).reshape(x.shape)
     dw = x.reshape(x.shape[0], -1).T.dot(dout)
     db = np.sum(dout, axis=0)
 
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
     return dx, dw, db
 
 def relu_backward(dout, cache):
@@ -231,26 +213,15 @@ def conv_backward_naive(dout, cache):
 
 
 def dropout_backward(dout, cache):
-    """
-    Perform the backward pass for (inverted) dropout.
-    Inputs:
-    - dout: Upstream derivatives, of any shape
-    - cache: (dropout_param, mask) from dropout_forward.
-    """
+
     dropout_param, mask = cache
     mode = dropout_param['mode']
 
     dx = None
     if mode == 'train':
-        #######################################################################
-        # TODO: Implement training phase backward pass for inverted dropout   #
-        #######################################################################
-
+    
         dx = dout * mask
 
-        #######################################################################
-        #                          END OF YOUR CODE                           #
-        #######################################################################
     elif mode == 'test':
         dx = dout
     return dx

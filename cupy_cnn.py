@@ -1,6 +1,6 @@
 import cupy as np
-from src_CNN.layers import *
-from src_CNN.fast_layers import *
+from src_CNN_cupy.layers import *
+from src_CNN_cupy.fast_layers import *
 
 learning_rate = 0.01
 
