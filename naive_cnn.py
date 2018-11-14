@@ -1,8 +1,9 @@
 import numpy as np
 from src_CNN.layers import *
+learning_rate = 0.001
 
 class Conv2D(object):
-    def __init__(self, filters = 64, kernel_size = 3, padding = 1, stride = 2):
+    def __init__(self, filters=64, kernel_size=3, padding=1, stride=2):
         self.stride = stride
         self.pad = padding
         w_shape = (filters, 3, kernel_size, kernel_size)
@@ -14,25 +15,28 @@ class Conv2D(object):
         self.x, self.w, self.b, _ = self.cache
         return out
 
-    def backward(self, dout):
+    def backward(self, dout, learning_rate = learning_rate):
         dx, dw, db = conv_backward_naive(dout, self.cache)
-        self.x -= dx
-        self.w -= dw
-        self.b -= db
+        self.x -= learning_rate * dx
+        self.w -= learning_rate * dw
+        self.b -= learning_rate * db
         return dx
 
+
 class MaxPooling(object):
-    def __init__(self, pool_size = 2, stride = 2):
+    def __init__(self, pool_size=2, stride=2):
         self.stride = stride
         self.size = pool_size
 
     def forward(self, input):
-        out, self.cache = max_pool_forward_naive(input, {'stride': self.stride, 'pool_width': self.size, 'pool_width': self.size})
+        out, self.cache = max_pool_forward_naive(input, {'stride': self.stride, 'pool_width': self.size,
+                                                         'pool_width': self.size})
         return out
 
     def backward(self, dout):
         dx = max_pool_backward_naive(dout, self.cache)
         return dx
+
 
 class ReLU(object):
     def forward(self, input):
@@ -43,8 +47,9 @@ class ReLU(object):
         dx = relu_backward(dout, self.cache)
         return dx
 
+
 class Dropout(object):
-    def __init__(self, prob = 0.3, mode = 'train'):
+    def __init__(self, prob=0.3, mode='train'):
         self.prob = prob
         self.mode = mode
 
@@ -57,8 +62,9 @@ class Dropout(object):
         dx = dropout_backward(dout, self.cache)
         return dx
 
+
 class FullyConnected(object):
-    def __init__(self, hidden_dim = 32, num_classes = 10, weight_scale = 0.01):
+    def __init__(self, hidden_dim=32, num_classes=10, weight_scale=0.01):
         self.w = weight_scale * np.random.randn(hidden_dim, num_classes)
         self.b = np.zeros(num_classes)
 
@@ -73,6 +79,7 @@ class FullyConnected(object):
         self.b += db
         return dx
 
+
 class Model(object):
     def __init__(self):
         self.layers = []
@@ -81,7 +88,7 @@ class Model(object):
     def add(self, layer):
         self.layers.append(layer)
 
-    def forward(self, input, mode, label = None):
+    def forward(self, input, mode, label=None):
         out = self.layers[0].forward(input)
         for layer in self.layers[1:]:
             out = layer.forward(out)
@@ -100,19 +107,33 @@ class Model(object):
             dout = self.forward(Xtrain, 'train', ytrain)
             self.backward(dout)
 
+
 def main():
     X = np.random.randn(100, 3, 32, 32)
     y = np.random.choice(9, 100)
 
     model = Model()
 
-    model.add(Conv2D(filters=1, kernel_size= 2, stride= 2, padding=1))
+    # Conv
+    model.add(Conv2D(filters=1, kernel_size=2, stride=2, padding=1))
+
+    # ReLU
     model.add(ReLU())
-    model.add(MaxPooling(pool_size = 2, stride = 1))
+
+    # MaxPool
+    model.add(MaxPooling(pool_size=2, stride=1))
+
+    # DropOut
     model.add(Dropout(0.3))
+
+    # ReLU
     model.add(ReLU())
-    model.add(FullyConnected(hidden_dim=256,num_classes=10))
-    model.fit(X, y, 5)
+
+    # FC
+    model.add(FullyConnected(hidden_dim=256, num_classes=10))
+
+    model.fit(X, y, 10)
+
 
 if __name__ == "__main__":
     main()
