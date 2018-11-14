@@ -1,55 +1,26 @@
 import numpy as np
 
 def conv_forward_naive(x, w, b, conv_param):
-    """
-    A naive implementation of the forward pass for a convolutional layer.
-    The input consists of N data points, each with C channels, height H and
-    width W. We convolve each input with F different filters, where each filter
-    spans all C channels and has height HH and width HH.
-    Input:
-    - x: Input data of shape (N, C, H, W)
-    - w: Filter weights of shape (F, C, HH, WW)
-    - b: Biases, of shape (F,)
-    - conv_param: A dictionary with the following keys:
-      - 'stride': The number of pixels between adjacent receptive fields in the
-        horizontal and vertical directions.
-      - 'pad': The number of pixels that will be used to zero-pad the input.
-    Returns a tuple of:
-    - out: Output data, of shape (N, F, H', W') where H' and W' are given by
-      H' = 1 + (H + 2 * pad - HH) / stride
-      W' = 1 + (W + 2 * pad - WW) / stride
-    - cache: (x, w, b, conv_param)
-    """
-    out = None
-    ###########################################################################
-    # TODO: Implement the convolutional forward pass.                         #
-    # Hint: you can use the function np.pad for padding.                      #
-    ###########################################################################
+    pad = conv_param["pad"]
+    stride = conv_param["stride"]
 
-    # Extract shapes and constants
+    x_padded = np.pad(x, [(0, 0), (0, 0), (pad, pad), (pad, pad)], "constant")
+
     N, C, H, W = x.shape
-    F, _, HH, WW = w.shape
-    stride = conv_param.get('stride', 1)
-    pad = conv_param.get('pad', 0)
-    # Check for parameter sanity
-    assert (H + 2 * pad - HH) % stride == 0, 'Sanity Check Status: Conv Layer Failed in Height'
-    assert (W + 2 * pad - WW) % stride == 0, 'Sanity Check Status: Conv Layer Failed in Width'
-    H_prime = 1 + (H + 2 * pad - HH) // stride
-    W_prime = 1 + (W + 2 * pad - WW) // stride
-    # Padding
-    x_pad = np.pad(x, ((0, 0), (0, 0), (pad, pad), (pad, pad)), 'constant', constant_values=0)
-    # Construct output
-    out = np.zeros((N, F, H_prime, W_prime))
-    # Naive Loops
-    for n in range(N):
-        for f in range(F):
-            for j in range(0, H_prime):
-                for i in range(0, W_prime):
-                    out[n, f, j, i] = (x_pad[n, :, j*stride:j*stride+HH, i*stride:i*stride+WW] * w[f, :, :, :]).sum() + b[f]
+    F, C, HH, WW = w.shape
 
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    Hout = (W - WW + 2 * pad) // stride + 1
+    Wout = (H - HH + 2 * pad) // stride + 1
+    out = np.zeros((N, F, Hout, Wout))
+    for idx_image, each_image in enumerate(x_padded):
+        for i_H in range(Hout):
+            for i_W in range(Wout):
+                im_patch = each_image[:, i_H * stride:i_H * stride + HH,
+                           i_W * stride:i_W * stride + WW]
+                scores = (w * im_patch).sum(axis=(1, 2, 3)) + b
+
+                out[idx_image, :, i_H, i_W] = scores
+
     cache = (x, w, b, conv_param)
     return out, cache
 

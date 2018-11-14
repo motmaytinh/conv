@@ -10,7 +10,7 @@ class Conv2D(object):
         self.pad = padding
         w_shape = (filters, in_channel, kernel_size, kernel_size)
         self.w = np.linspace(-0.2, 0.3, num=np.prod(w_shape)).reshape(w_shape)
-        self.b = np.linspace(-0.1, 0.2, num=3)
+        self.b = np.linspace(-0.1, 0.2, num=filters)
 
     def forward(self, input):
         out, self.cache = conv_forward_naive(input, self.w, self.b, {'stride': self.stride, 'pad': self.pad})
@@ -134,46 +134,40 @@ class Model(object):
 def main():
     # X = np.random.randn(100, 3, 32, 32) * 100
 
-    X = np.random.randn(10, 1, 28, 28)
+    X = np.random.randn(100, 1, 28, 28)
 
     y = np.random.choice(9, 10)
 
     model = Model()
 
     # Conv
-    model.add(Conv2D(filters=32, in_channel = 1, kernel_size=5, stride=1, padding=1))
+    model.add(Conv2D(filters=32, in_channel = 1, kernel_size=5, stride=1, padding=2))
 
     # ReLU
-    # model.add(ReLU())
+    model.add(ReLU())
 
     # MaxPool
-    # model.add(MaxPooling(pool_size=2, stride=1))
-
-    # DropOut
-    # model.add(Dropout(0.3))
+    model.add(MaxPooling(pool_size=2, stride=1))
 
     # Conv
-    # model.add(Conv2D(filters=32, in_channel = 1, kernel_size=2, stride=1, padding=1))
+    model.add(Conv2D(filters=64, in_channel = 1, kernel_size=5, stride=1, padding=2))
 
     # ReLU
-    # model.add(ReLU())
+    model.add(ReLU())
 
     # MaxPool
-    # model.add(MaxPooling(pool_size=2, stride=1))
-
-    # DropOut
-    # model.add(Dropout(0.3))
+    model.add(MaxPooling(pool_size=2, stride=1))
 
     # FC
-    # model.add(FullyConnected(hidden_dim=100, num_classes=100))
+    model.add(FullyConnected(hidden_dim=43264, num_classes=1024))
 
     # DropOut
-    # model.add(Dropout(0.3))
+    model.add(Dropout(0.5))
 
     # FC
-    # model.add(FullyConnected(hidden_dim=49, num_classes=10))
+    model.add(FullyConnected(hidden_dim=1024, num_classes=10))
 
-    model.fit(X, y, 2, 5)
+    model.fit(X, y, 2, 10)
 
     print(model.predict(np.random.randn(10, 1, 28, 28)))
 
