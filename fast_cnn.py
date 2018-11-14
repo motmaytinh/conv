@@ -8,7 +8,7 @@ class Conv2D(object):
     def __init__(self, filters=64, kernel_size=3, padding=1, stride=2):
         self.stride = stride
         self.pad = padding
-        w_shape = (filters, 1, kernel_size, kernel_size)
+        w_shape = (filters, 3, kernel_size, kernel_size)
         self.w = np.linspace(-0.2, 0.3, num=np.prod(w_shape)).reshape(w_shape)
         self.b = np.linspace(-0.1, 0.2, num=3)
 
