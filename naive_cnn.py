@@ -14,13 +14,11 @@ class Conv2D(object):
 
     def forward(self, input):
         out, self.cache = conv_forward_naive(input, self.w, self.b, {'stride': self.stride, 'pad': self.pad})
-        self.x, self.w, self.b, _ = self.cache
 
         return out
 
     def backward(self, dout):
         dx, dw, db = conv_backward_naive(dout, self.cache)
-        self.x -= self.learning_rate * dx
         self.w -= self.learning_rate * dw
         self.b -= self.learning_rate * db
         return dx
@@ -57,7 +55,6 @@ class Dropout(object):
 
     def forward(self, input, mode='train'):
         out, self.cache = dropout_forward(input, {'p': self.prob, 'mode': mode})
-        _, self.mask = self.cache
         return out
 
     def backward(self, dout):
@@ -73,15 +70,11 @@ class FullyConnected(object):
 
     def forward(self, input):
         out, self.cache = fully_connected_forward(input, self.w, self.b)
-        self.x, self.w, self.b = self.cache
         return out
 
     def backward(self, dout):
         dx, dw, db = fully_connected_backward(dout, self.cache)
-        # self.w += learning_rate * dw
-        # self.b += learning_rate * db
-
-        # TODO : clear + or -
+        
         self.w -= self.learning_rate * dw
         self.b -= self.learning_rate * db
         return dx
@@ -116,7 +109,7 @@ class NaiveCNN(object):
         for layer in reversed(self.layers[:-1]):
             dout = layer.backward(dout)
 
-    def fit(self, Xtrain, ytrain, epoch, batch_size):
+    def fit(self, Xtrain, ytrain, Xval, yval, epoch, batch_size):
         n = len(Xtrain)
 
         if not n % batch_size == 0:
@@ -128,6 +121,7 @@ class NaiveCNN(object):
             while i != n:
                 dout = self.forward(Xtrain[i:i + batch_size], 'train', ytrain[i:i + batch_size])
                 self.backward(dout)
+                # print("Val accuracy: " + self.evaluate(Xval, yval))
                 i += batch_size
 
     def evaluate(self, Xtest, ytest):
@@ -154,7 +148,7 @@ def main():
     model = NaiveCNN()
 
     # Conv
-    model.add(Conv2D(filters=32, in_channel=1, kernel_size=5, stride=1, padding=2, learning_rate=0.01))
+    model.add(Conv2D(filters=32, in_channel=1, kernel_size=5, stride=1, padding=2, learning_rate=0.0001))
 
     # ReLU
     model.add(ReLU())
@@ -163,7 +157,7 @@ def main():
     model.add(MaxPooling(pool_size=2, stride=1))
 
     # Conv
-    model.add(Conv2D(filters=64, in_channel=32, kernel_size=5, stride=1, padding=2, learning_rate=0.01))
+    model.add(Conv2D(filters=64, in_channel=32, kernel_size=5, stride=1, padding=2, learning_rate=0.0001))
 
     # ReLU
     model.add(ReLU())
@@ -172,7 +166,7 @@ def main():
     model.add(MaxPooling(pool_size=2, stride=1))
 
     # FC
-    model.add(FullyConnected(hidden_dim=43264, num_classes=1024, learning_rate=0.01))
+    model.add(FullyConnected(hidden_dim=43264, num_classes=1024, learning_rate=0.0001))
 
     # DropOut
     model.add(Dropout(0.5))
@@ -180,7 +174,7 @@ def main():
     # FC
     model.add(FullyConnected(hidden_dim=1024, num_classes=10))
 
-    model.fit(X, y, 3, 10)
+    model.fit(X, y,X ,y, 3, 10)
 
     print(model.evaluate(np.random.randn(10, 1, 28, 28), np.random.choice(9, 10)))
 
