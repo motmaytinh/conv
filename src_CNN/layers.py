@@ -1,203 +1,171 @@
-import numpy as np
+from src_CNN.layer_utils import *
 
-def conv_forward_naive(x, w, b, conv_param):
-    pad = conv_param["pad"]
-    stride = conv_param["stride"]
+learning_rate = 0.1
 
-    x_padded = np.pad(x, [(0, 0), (0, 0), (pad, pad), (pad, pad)], "constant")
+class Conv2DFast(object):
+    def __init__(self, filters=64, in_channel=1, kernel_size=3, padding=1, stride=2, learning_rate=learning_rate):
+        self.learning_rate = learning_rate
+        self.stride = stride
+        self.pad = padding
+        w_shape = (filters, in_channel, kernel_size, kernel_size)
+        self.w = np.linspace(-0.2, 0.3, num=np.prod(w_shape)).reshape(w_shape)
+        self.b = np.linspace(-0.1, 0.2, num=filters)
 
-    N, C, H, W = x.shape
-    F, C, HH, WW = w.shape
+    def forward(self, input):
+        out, self.cache = conv_forward_fast(input, self.w, self.b, {'stride': self.stride, 'pad': self.pad})
+        return out
 
-    Hout = (W - WW + 2 * pad) // stride + 1
-    Wout = (H - HH + 2 * pad) // stride + 1
-    out = np.zeros((N, F, Hout, Wout))
-    for idx_image, each_image in enumerate(x_padded):
-        for i_H in range(Hout):
-            for i_W in range(Wout):
-                im_patch = each_image[:, i_H * stride:i_H * stride + HH,
-                           i_W * stride:i_W * stride + WW]
-                scores = (w * im_patch).sum(axis=(1, 2, 3)) + b
-
-                out[idx_image, :, i_H, i_W] = scores
-
-    cache = (x, w, b, conv_param)
-    return out, cache
+    def backward(self, dout, learning_rate=learning_rate):
+        dx, dw, db = conv_backward_fast(dout, self.cache)
+        self.w -= self.learning_rate * dw
+        self.b -= self.learning_rate * db
+        return dx
 
 
-def max_pool_forward_naive(x, pool_param):
-    (N, C, H, W) = x.shape
+class MaxPoolingFast(object):
+    def __init__(self, pool_size=2, stride=2):
+        self.stride = stride
+        self.size = pool_size
 
-    pool_height, pool_width, stride = pool_param['pool_height'], pool_param['pool_width'], pool_param['stride']
+    def forward(self, input):
+        out, self.cache = max_pool_forward_fast(input, {'stride': self.stride, 'pool_width': self.size,
+                                                         'pool_height': self.size})
+        return out
 
-    Hout = 1 + (H - pool_height) // stride
-    Wout = 1 + (W - pool_width) // stride
+    def backward(self, dout):
+        dx = max_pool_backward_fast(dout, self.cache)
+        return dx
 
-    out = np.zeros((N, C, Hout, Wout))
+class Conv2DNaive(object):
+    def __init__(self, filters=64, in_channel=1, kernel_size=3, padding=1, stride=2, learning_rate=learning_rate):
+        self.learning_rate = learning_rate
+        self.stride = stride
+        self.pad = padding
+        w_shape = (filters, in_channel, kernel_size, kernel_size)
+        self.w = np.linspace(-0.2, 0.3, num=np.prod(w_shape)).reshape(w_shape)
+        self.b = np.linspace(-0.1, 0.2, num=filters)
 
-    for idx_image, each_image in enumerate(x):
-        for i_H in range(Hout):
-            for i_W in range(Wout):
-                each_window_channels = each_image[:, i_H * stride: i_H * stride + pool_height,
-                                       i_W * stride: i_W * stride + pool_width]
+    def forward(self, input):
+        out, self.cache = conv_forward_naive(input, self.w, self.b, {'stride': self.stride, 'pad': self.pad})
 
-                out[idx_image, :, i_H, i_W] = each_window_channels.max(axis=(1, 2))  # maxpooling
+        return out
 
-    cache = (x, pool_param)
-
-    return out, cache
-
-
-def relu_forward(x):
-    out = None
-
-    out = np.maximum(0, x)
-
-    cache = x
-    return out, cache
-
-
-def dropout_forward(x, dropout_param):
-    p, mode = dropout_param['p'], dropout_param['mode']
-
-    mask = None
-    out = None
-
-    if mode == 'train':
-
-        mask = (np.random.rand(*x.shape) < p) / p
-        out = x * mask
-
-    elif mode == 'test':
-
-        out = x
-
-    cache = (dropout_param, mask)
-    out = out.astype(x.dtype, copy=False)
-
-    return out, cache
+    def backward(self, dout):
+        dx, dw, db = conv_backward_naive(dout, self.cache)
+        self.w -= self.learning_rate * dw
+        self.b -= self.learning_rate * db
+        return dx
 
 
-def fully_connected_forward(x, w, b):
-    out = None
+class MaxPoolingNaive(object):
+    def __init__(self, pool_size=2, stride=2):
+        self.stride = stride
+        self.size = pool_size
 
-    out = x.reshape(x.shape[0], -1).dot(w) + b
+    def forward(self, input):
+        out, self.cache = max_pool_forward_naive(input, {'stride': self.stride, 'pool_width': self.size,
+                                                         'pool_height': self.size})
+        return out
 
-    cache = (x, w, b)
-    return out, cache
-
-
-def softmax_loss(x, y):
-    shifted_logits = x - np.max(x, axis=1, keepdims=True)
-    Z = np.sum(np.exp(shifted_logits), axis=1, keepdims=True)
-    log_probs = shifted_logits - np.log(Z)
-    probs = np.exp(log_probs)
-    N = x.shape[0]
-    loss = -np.sum(log_probs[np.arange(N), y]) / N
-    dx = probs.copy()
-    dx[np.arange(N), y] -= 1
-    dx /= N
-    return loss, dx
-
-def fully_connected_backward(dout, cache):
-    x, w, b = cache
-    dx, dw, db = None, None, None
-
-    dx = dout.dot(w.T).reshape(x.shape)
-    dw = x.reshape(x.shape[0], -1).T.dot(dout)
-    db = np.sum(dout, axis=0)
-
-    return dx, dw, db
-
-def relu_backward(dout, cache):
-    dx, x = None, cache
-
-    dx = (x > 0) * dout
-
-    return dx
-
-def max_pool_backward_naive(dout, cache):
-  dx = None
-  (x, pool_param) = cache
-  (N, C, H, W) = x.shape
-  pool_height = pool_param['pool_height']
-  pool_width = pool_param['pool_width']
-  stride = pool_param['stride']
-  H_prime = 1 + (H - pool_height) // stride
-  W_prime = 1 + (W - pool_width) // stride
-
-  dx = np.zeros_like(x)
-
-  for n in range(N):
-    for c in range(C):
-      for h in range(H_prime):
-        for w in range(W_prime):
-          h1 = h * stride
-          h2 = h * stride + pool_height
-          w1 = w * stride
-          w2 = w * stride + pool_width
-          window = x[n, c, h1:h2, w1:w2]
-          window2 = np.reshape(window, (pool_height*pool_width))
-          window3 = np.zeros_like(window2)
-          window3[np.argmax(window2)] = 1
-
-          dx[n,c,h1:h2,w1:w2] = np.reshape(window3,(pool_height,pool_width)) * dout[n,c,h,w]
-  return dx
+    def backward(self, dout):
+        dx = max_pool_backward_naive(dout, self.cache)
+        return dx
 
 
+class ReLU(object):
+    def forward(self, input):
+        out, self.cache = relu_forward(input)
+        return out
 
-def conv_backward_naive(dout, cache):
-
-    dx, dw, db = None, None, None
-    x, w, b, conv_param = cache
-    pad = conv_param["pad"]
-    stride = conv_param["stride"]
-    N, C, H, W = x.shape
-    F, C, HH, WW = w.shape
-    Hout = (W - WW + 2 * pad) // stride + 1
-    Wout = (H - HH + 2 * pad) // stride + 1
-    out = np.zeros((N, F, Hout, Wout))
-    x_padded = np.pad(x, [(0, 0), (0, 0), (pad, pad), (pad, pad)], "constant")
-    dw = np.zeros(w.shape)
-    db = np.zeros(b.shape)
-    dx = np.zeros(x_padded.shape)
-
-    for idx_image, image in enumerate(x_padded): # 4 sample
-        for i_height in range(Hout):
-            for i_width in range(Wout):
-                im_patch = image[:, i_height * stride:i_height * stride + HH,
-                                 i_width * stride:i_width * stride + WW]
-
-                # duplicate to each filter F: number of filter
-                im_patch = np.tile(im_patch, (F, 1, 1, 1))
-
-                # dw += (im_patch * dout[idx_image, :, i_height, i_width].reshape(-1, 1, 1, 1))
-
-                dw += (im_patch * dout[idx_image, :, i_height, i_width].reshape(-1, 1, 1, 1))
-                db += dout[idx_image, :, i_height, i_width]
-                dx[idx_image:idx_image + 1, :, i_height * stride:i_height * stride + HH, i_width * stride:i_width * stride + WW] +=\
-                (w * dout[idx_image, :, i_height, i_width].reshape(-1, 1, 1, 1)).sum(axis=0)
-
-    dx = dx[:, :, pad:-pad, pad:-pad]
-    return dx, dw, db
+    def backward(self, dout):
+        dx = relu_backward(dout, self.cache)
+        return dx
 
 
-def dropout_backward(dout, cache):
+class Dropout(object):
+    def __init__(self, prob=0.3):
+        self.prob = prob
 
-    dropout_param, mask = cache
-    mode = dropout_param['mode']
+    def forward(self, input, mode='train'):
+        out, self.cache = dropout_forward(input, {'p': self.prob, 'mode': mode})
+        return out
 
-    dx = None
-    if mode == 'train':
-    
-        dx = dout * mask
+    def backward(self, dout):
+        dx = dropout_backward(dout, self.cache)
+        return dx
 
-    elif mode == 'test':
-        dx = dout
-    return dx
 
-def softmax(x):
-    shifted_logits = x - np.max(x, axis=1, keepdims=True)
-    Z = np.sum(np.exp(shifted_logits), axis=1, keepdims=True)
-    probs = shifted_logits/Z
-    return probs
+class FullyConnected(object):
+    def __init__(self, hidden_dim=32, num_classes=10, weight_scale=0.01, learning_rate=learning_rate):
+        self.learning_rate = learning_rate
+        self.w = weight_scale * np.random.randn(hidden_dim, num_classes)
+        self.b = np.zeros(num_classes)
+
+    def forward(self, input):
+        out, self.cache = fully_connected_forward(input, self.w, self.b)
+        return out
+
+    def backward(self, dout):
+        dx, dw, db = fully_connected_backward(dout, self.cache)
+        
+        self.w -= self.learning_rate * dw
+        self.b -= self.learning_rate * db
+        return dx
+
+
+class Model(object):
+    def __init__(self):
+        self.layers = []
+        self.layers_out = []
+
+    def add(self, layer):
+        self.layers.append(layer)
+
+    def forward(self, input, mode, label=None):
+        out = self.layers[0].forward(input)
+        if mode == 'train':
+            for layer in self.layers[1:]:
+                out = layer.forward(out)
+            loss, dx = softmax_loss(out, label)
+            print(loss)
+            return dx
+
+        for layer in self.layers[1:]:
+            if isinstance(layer, Dropout):
+                out = layer.forward(out, mode='test')
+            else:
+                out = layer.forward(out)
+        return softmax(out)
+
+    def backward(self, input):
+        dout = self.layers[-1].backward(input)
+        for layer in reversed(self.layers[:-1]):
+            dout = layer.backward(dout)
+
+    def fit(self, Xtrain, ytrain, Xval, yval, epoch, batch_size):
+        n = len(Xtrain)
+
+        if not n % batch_size == 0:
+            raise ValueError("Batch size must be multiple of number of inputs")
+
+        for e in range(epoch):
+            i = 0
+            print("== EPOCH: ", e + 1, "/", epoch, " ==")
+            while i != n:
+                dout = self.forward(Xtrain[i:i + batch_size], 'train', ytrain[i:i + batch_size])
+                self.backward(dout)
+                # print("Val accuracy: " + self.evaluate(Xval, yval))
+                i += batch_size
+
+    def evaluate(self, Xtest, ytest):
+        predictlst = self.predict(Xtest)
+        count = np.sum(predictlst == ytest)
+        return count / len(ytest)
+
+    def predict(self, Xtest):
+        lst = self.forward(Xtest, 'test')
+        predicted = []
+        for i in lst:
+            i = i.tolist()
+            predicted.append(i.index(max(i)))
+        return predicted
