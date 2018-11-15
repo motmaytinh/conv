@@ -6,14 +6,13 @@ learning_rate = 0.1
 class Conv2DFast(object):
     def __init__(self, filters=64, in_channel=1, kernel_size=3, padding=1, stride=2, learning_rate=learning_rate):
         self.learning_rate = learning_rate
-        self.stride = stride
-        self.pad = padding
+        self.conv_param = {'stride': stride, 'pad': padding}
         w_shape = (filters, in_channel, kernel_size, kernel_size)
         self.w = np.linspace(-0.2, 0.3, num=np.prod(w_shape)).reshape(w_shape)
         self.b = np.linspace(-0.1, 0.2, num=filters)
 
     def forward(self, input):
-        out, self.cache = conv_forward_fast(input, self.w, self.b, {'stride': self.stride, 'pad': self.pad})
+        out, self.cache = conv_forward_fast(input, self.w, self.b, self.conv_param)
         return out
 
     def backward(self, dout, learning_rate=learning_rate):
@@ -25,12 +24,10 @@ class Conv2DFast(object):
 
 class MaxPoolingFast(object):
     def __init__(self, pool_size=2, stride=2):
-        self.stride = stride
-        self.size = pool_size
+        self.pool_param = {'stride': stride, 'pool_width': pool_size, 'pool_height': pool_size}
 
     def forward(self, input):
-        out, self.cache = max_pool_forward_fast(input, {'stride': self.stride, 'pool_width': self.size,
-                                                         'pool_height': self.size})
+        out, self.cache = max_pool_forward_fast(input, pool_param)
         return out
 
     def backward(self, dout):
@@ -59,12 +56,10 @@ class Conv2DNaive(object):
 
 class MaxPoolingNaive(object):
     def __init__(self, pool_size=2, stride=2):
-        self.stride = stride
-        self.size = pool_size
+        self.pool_param = {'stride': stride, 'pool_width': pool_size, 'pool_height': pool_size}
 
     def forward(self, input):
-        out, self.cache = max_pool_forward_naive(input, {'stride': self.stride, 'pool_width': self.size,
-                                                         'pool_height': self.size})
+        out, self.cache = max_pool_forward_naive(input, self.pool_param)
         return out
 
     def backward(self, dout):

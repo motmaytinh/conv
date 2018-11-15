@@ -9,7 +9,7 @@ def main():
     fastCNN = Model()
 
     # Conv
-    fastCNN.add(Conv2DFast(filters=32, in_channel=1, kernel_size=5, stride=1, padding=2, learning_rate=0.0001))
+    fastCNN.add(Conv2DFast(filters=32, in_channel=1, kernel_size=5, stride=1, padding=2, learning_rate=0.001))
 
     # ReLU
     fastCNN.add(ReLU())
