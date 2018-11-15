@@ -6,36 +6,27 @@ def main():
 
     y = np.random.choice(9, 10)
 
-    model = Model()
+    fastCNN = Model()
 
     # Conv
-    model.add(Conv2DFast(filters=32, in_channel = 1, kernel_size=5, stride=1, padding=2, learning_rate= 0.01))
+    fastCNN.add(Conv2DFast(filters=32, in_channel=1, kernel_size=5, stride=1, padding=2, learning_rate=0.0001))
 
     # ReLU
-    model.add(ReLU())
+    fastCNN.add(ReLU())
 
     # MaxPool
-    model.add(MaxPoolingFast(pool_size=2, stride=1))
-
-    # Conv
-    model.add(Conv2DFast(filters=64, in_channel = 32, kernel_size=5, stride=1, padding=2, learning_rate= 0.01))
-
-    # ReLU
-    model.add(ReLU())
-
-    # MaxPool
-    model.add(MaxPoolingFast(pool_size=2, stride=1))
+    fastCNN.add(MaxPoolingFast(pool_size=2, stride=1))
 
     # FC
-    model.add(FullyConnected(hidden_dim=43264, num_classes=1024, learning_rate= 0.01))
+    fastCNN.add(FullyConnected(hidden_dim=23328, num_classes=1024, learning_rate=0.0001))
 
     # DropOut
-    model.add(Dropout(0.5))
+    fastCNN.add(Dropout(0.5))
 
     # FC
-    model.add(FullyConnected(hidden_dim=1024, num_classes=10, learning_rate= 0.01))
+    fastCNN.add(FullyConnected(hidden_dim=1024, num_classes=10))
 
-    model.fit(X, y, X, y 1, 10)
+    model.fit(X, y,X ,y, 10, 10)
 
     print(model.predict(np.random.randn(10, 1, 28, 28)))
 

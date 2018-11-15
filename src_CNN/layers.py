@@ -1,4 +1,5 @@
 from src_CNN.layer_utils import *
+from src_CNN.fast_layers import *
 
 learning_rate = 0.1
 
