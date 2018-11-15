@@ -26,9 +26,9 @@ def main():
     # FC
     fastCNN.add(FullyConnected(hidden_dim=1024, num_classes=10))
 
-    model.fit(X, y,X ,y, 10, 10)
+    fastCNN.fit(X, y,X ,y, 10, 10)
 
-    print(model.predict(np.random.randn(10, 1, 28, 28)))
+    print(fastCNN.predict(np.random.randn(10, 1, 28, 28)))
 
 
 if __name__ == "__main__":

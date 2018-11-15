@@ -27,7 +27,7 @@ class MaxPoolingFast(object):
         self.pool_param = {'stride': stride, 'pool_width': pool_size, 'pool_height': pool_size}
 
     def forward(self, input):
-        out, self.cache = max_pool_forward_fast(input, pool_param)
+        out, self.cache = max_pool_forward_fast(input, self.pool_param)
         return out
 
     def backward(self, dout):
