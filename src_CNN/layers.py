@@ -39,14 +39,13 @@ class MaxPoolingFast(object):
 class Conv2DNaive(object):
     def __init__(self, filters=64, in_channel=1, kernel_size=3, padding=1, stride=2, learning_rate=learning_rate):
         self.learning_rate = learning_rate
-        self.stride = stride
-        self.pad = padding
+        self.conv_param = {'stride': stride, 'pad': padding}
         w_shape = (filters, in_channel, kernel_size, kernel_size)
         self.w = np.linspace(-0.2, 0.3, num=np.prod(w_shape)).reshape(w_shape)
         self.b = np.linspace(-0.1, 0.2, num=filters)
 
     def forward(self, input):
-        out, self.cache = conv_forward_naive(input, self.w, self.b, {'stride': self.stride, 'pad': self.pad})
+        out, self.cache = conv_forward_naive(input, self.w, self.b, self.conv_param)
 
         return out
 

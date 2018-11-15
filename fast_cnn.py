@@ -1,7 +1,6 @@
 from src_CNN.layers import *
 
 def main():
-    # X = np.random.randn(100, 3, 32, 32) * 100
 
     X = np.random.randn(10, 1, 28, 28)
 
