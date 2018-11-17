@@ -86,14 +86,17 @@ def fully_connected_forward(x, w, b):
     cache = (x, w, b)
     return out, cache
 
+def softmax(x):
+    exps = np.exp(x - np.max(x, axis=1, keepdims=True))
+    return exps / np.sum(exps, axis=1, keepdims=True)
 
 def softmax_loss(x, y):
-    shifted_logits = x - np.max(x, axis=1, keepdims=True)
-    Z = np.sum(np.exp(shifted_logits), axis=1, keepdims=True)
-    log_probs = shifted_logits - np.log(Z)
-    probs = np.exp(log_probs)
+    probs = softmax(x)
+
     N = x.shape[0]
-    loss = -np.sum(log_probs[np.arange(N), y]) / N
+    log_likelihood = -np.log(probs[np.arange(N),y])
+    loss = np.sum(log_likelihood) / N
+
     dx = probs.copy()
     dx[np.arange(N), y] -= 1
     dx /= N
@@ -175,7 +178,7 @@ def conv_backward_naive(dout, cache):
 
                 dw += (im_patch * dout[idx_image, :, i_height, i_width].reshape(-1, 1, 1, 1))
                 db += dout[idx_image, :, i_height, i_width]
-                dx[idx_image:idx_image + 1, :, i_height * stride:i_height * stride + HH, i_width * stride:i_width * stride + WW] +=\
+                dx[idx_image, :, i_height * stride:i_height * stride + HH, i_width * stride:i_width * stride + WW] +=\
                 (w * dout[idx_image, :, i_height, i_width].reshape(-1, 1, 1, 1)).sum(axis=0)
 
     dx = dx[:, :, pad:-pad, pad:-pad]
@@ -195,9 +198,3 @@ def dropout_backward(dout, cache):
     elif mode == 'test':
         dx = dout
     return dx
-
-def softmax(x):
-    shifted_logits = x - np.max(x, axis=1, keepdims=True)
-    Z = np.sum(np.exp(shifted_logits), axis=1, keepdims=True)
-    probs = shifted_logits/Z
-    return probs
