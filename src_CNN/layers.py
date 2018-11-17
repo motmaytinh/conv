@@ -111,7 +111,6 @@ class FullyConnected(object):
 class Model(object):
     def __init__(self):
         self.layers = []
-        self.layers_out = []
 
     def add(self, layer):
         self.layers.append(layer)
@@ -136,6 +135,7 @@ class Model(object):
             dout = layer.backward(dout)
 
     def fit(self, Xtrain, ytrain, Xval, yval, epoch, batch_size, print_after=10):
+        self.batch_size = batch_size
         n = len(Xtrain)
 
         if not n % batch_size == 0:
@@ -155,14 +155,21 @@ class Model(object):
                 self.backward(dout)
 
     def evaluate(self, Xtest, ytest):
-        predictlst = self.predict(Xtest)
+        i = 0
+        predictlst = []
+        while i != len(ytest):
+            predictlst.append(self.predict(Xtest[i:i+self.batch_size]))
+            i += self.batch_size
         count = np.sum(predictlst == ytest)
         return count / len(ytest)
 
     def predict(self, Xtest):
-        softmax_out = self.forward(Xtest, 'test')
+        i = 0
         predicted = []
-        for i in softmax_out:
-            i = i.tolist()
-            predicted.append(i.index(max(i)))
+        while i != len(Xtest):
+            softmax_out = self.forward(Xtest[i:i+self.batch_size], 'test')
+            for probs in softmax_out:
+                probs = probs.tolist()
+                predicted.append(probs.index(max(probs)))
+            i += self.batch_size
         return predicted

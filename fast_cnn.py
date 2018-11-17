@@ -28,7 +28,7 @@ def main():
     # FC
     fastCNN.add(FullyConnected(hidden_dim=1024, num_classes=10))
 
-    fastCNN.fit(X, y,X[:5] ,y[:5], 10, 10)
+    fastCNN.fit(X, y,X[:10] ,y[:10], 10, 10, 20)
 
     print(fastCNN.predict(np.random.randn(10, 1, 28, 28)))
 
