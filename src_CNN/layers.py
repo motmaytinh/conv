@@ -116,14 +116,12 @@ class Model(object):
     def add(self, layer):
         self.layers.append(layer)
 
-    def forward(self, input, mode, label=None):
+    def forward(self, input, mode):
         out = self.layers[0].forward(input)
         if mode == 'train':
             for layer in self.layers[1:]:
                 out = layer.forward(out)
-            loss, dx = softmax_loss(out, label)
-            print(loss)
-            return dx
+            return softmax(out)
 
         for layer in self.layers[1:]:
             if isinstance(layer, Dropout):
@@ -147,9 +145,10 @@ class Model(object):
             i = 0
             print("== EPOCH: ", e + 1, "/", epoch, " ==")
             while i != n:
-                dout = self.forward(Xtrain[i:i + batch_size], 'train', ytrain[i:i + batch_size])
+                softmax_out = self.forward(Xtrain[i:i + batch_size], 'train')
+                loss, dout = softmax_loss(softmax_out, ytrain[i:i + batch_size])
+                print("Step ", i + batch_size, ": train loss: ", loss)
                 self.backward(dout)
-                # print("Val accuracy: " + self.evaluate(Xval, yval))
                 i += batch_size
 
     def evaluate(self, Xtest, ytest):
