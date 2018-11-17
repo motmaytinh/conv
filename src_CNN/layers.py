@@ -158,7 +158,7 @@ class Model(object):
         i = 0
         predictlst = []
         while i != len(ytest):
-            predictlst.append(self.predict(Xtest[i:i+self.batch_size]))
+            predictlst += self.predict(Xtest[i:i+self.batch_size])
             i += self.batch_size
         count = np.sum(predictlst == ytest)
         return count / len(ytest)
