@@ -2,9 +2,9 @@ from src_CNN.layers import *
 
 def main():
 
-    X = np.random.randn(10, 1, 28, 28)
+    X = np.random.randn(20, 1, 28, 28)
 
-    y = np.random.choice(9, 10)
+    y = np.random.choice(9, 20)
 
     print("label: ", y)
 
@@ -28,7 +28,7 @@ def main():
     # FC
     fastCNN.add(FullyConnected(hidden_dim=1024, num_classes=10))
 
-    fastCNN.fit(X, y,X ,y, 10, 10)
+    fastCNN.fit(X, y,X[:5] ,y[:5], 10, 10)
 
     print(fastCNN.predict(np.random.randn(10, 1, 28, 28)))
 

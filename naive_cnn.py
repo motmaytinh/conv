@@ -3,9 +3,9 @@ from src_CNN.layers import *
 def main():
     # X = np.random.randn(100, 3, 32, 32) * 100
 
-    X = np.random.randn(10, 1, 28, 28)
+    X = np.random.randn(20, 1, 28, 28)
 
-    y = np.random.choice(9, 10)
+    y = np.random.choice(9, 20)
 
     print("Label: " + str(y))
 
