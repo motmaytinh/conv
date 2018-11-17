@@ -6,6 +6,8 @@ def main():
 
     y = np.random.choice(9, 10)
 
+    print("label: ", y)
+
     fastCNN = Model()
 
     # Conv

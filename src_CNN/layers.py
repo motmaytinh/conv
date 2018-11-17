@@ -135,7 +135,7 @@ class Model(object):
         for layer in reversed(self.layers[:-1]):
             dout = layer.backward(dout)
 
-    def fit(self, Xtrain, ytrain, Xval, yval, epoch, batch_size):
+    def fit(self, Xtrain, ytrain, Xval, yval, epoch, batch_size, print_after=10):
         n = len(Xtrain)
 
         if not n % batch_size == 0:
@@ -147,9 +147,12 @@ class Model(object):
             while i != n:
                 softmax_out = self.forward(Xtrain[i:i + batch_size], 'train')
                 loss, dout = softmax_loss(softmax_out, ytrain[i:i + batch_size])
-                print("Step ", i + batch_size, ": train loss: ", loss)
-                self.backward(dout)
                 i += batch_size
+                if i % print_after == 0:
+                    train_acc = self.evaluate(Xtrain, ytrain)
+                    val_acc = self.evaluate(Xval, yval)
+                    print("Step {}: loss: {}, train accuracy: {}, validate accuracy: {}".format(i, loss, train_acc, val_acc))
+                self.backward(dout)
 
     def evaluate(self, Xtest, ytest):
         predictlst = self.predict(Xtest)
@@ -157,9 +160,9 @@ class Model(object):
         return count / len(ytest)
 
     def predict(self, Xtest):
-        lst = self.forward(Xtest, 'test')
+        softmax_out = self.forward(Xtest, 'test')
         predicted = []
-        for i in lst:
+        for i in softmax_out:
             i = i.tolist()
             predicted.append(i.index(max(i)))
         return predicted
