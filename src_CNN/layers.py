@@ -111,16 +111,19 @@ class FullyConnected(object):
 class Model(object):
     def __init__(self):
         self.layers = []
+        self.layers_out = []
 
     def add(self, layer):
         self.layers.append(layer)
 
-    def forward(self, input, mode):
+    def forward(self, input, mode, label=None):
         out = self.layers[0].forward(input)
         if mode == 'train':
             for layer in self.layers[1:]:
                 out = layer.forward(out)
-            return softmax(out)
+            loss, dx = softmax_loss(out, label)
+            print(loss)
+            return dx
 
         for layer in self.layers[1:]:
             if isinstance(layer, Dropout):
@@ -134,8 +137,7 @@ class Model(object):
         for layer in reversed(self.layers[:-1]):
             dout = layer.backward(dout)
 
-    def fit(self, Xtrain, ytrain, Xval, yval, epoch, batch_size, print_after=10):
-        self.batch_size = batch_size
+    def fit(self, Xtrain, ytrain, Xval, yval, epoch, batch_size):
         n = len(Xtrain)
 
         if not n % batch_size == 0:
@@ -145,31 +147,20 @@ class Model(object):
             i = 0
             print("== EPOCH: ", e + 1, "/", epoch, " ==")
             while i != n:
-                softmax_out = self.forward(Xtrain[i:i + batch_size], 'train')
-                loss, dout = softmax_loss(softmax_out, ytrain[i:i + batch_size])
-                i += batch_size
-                if i % print_after == 0:
-                    train_acc = self.evaluate(Xtrain, ytrain)
-                    val_acc = self.evaluate(Xval, yval)
-                    print("Step {}: loss: {}, train accuracy: {}, validate accuracy: {}".format(i, loss, train_acc, val_acc))
+                dout = self.forward(Xtrain[i:i + batch_size], 'train', ytrain[i:i + batch_size])
                 self.backward(dout)
+                # print("Val accuracy: " + self.evaluate(Xval, yval))
+                i += batch_size
 
     def evaluate(self, Xtest, ytest):
-        i = 0
-        predictlst = []
-        while i != len(ytest):
-            predictlst += self.predict(Xtest[i:i+self.batch_size])
-            i += self.batch_size
+        predictlst = self.predict(Xtest)
         count = np.sum(predictlst == ytest)
         return count / len(ytest)
 
     def predict(self, Xtest):
-        i = 0
+        lst = self.forward(Xtest, 'test')
         predicted = []
-        while i != len(Xtest):
-            softmax_out = self.forward(Xtest[i:i+self.batch_size], 'test')
-            for probs in softmax_out:
-                probs = probs.tolist()
-                predicted.append(probs.index(max(probs)))
-            i += self.batch_size
+        for i in lst:
+            i = i.tolist()
+            predicted.append(i.index(max(i)))
         return predicted
