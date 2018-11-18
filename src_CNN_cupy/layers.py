@@ -7,7 +7,7 @@ class Conv2DFast(object):
     def __init__(self, filters=64, in_channel=1, kernel_size=3, padding=1, stride=2, learning_rate=learning_rate):
         self.learning_rate = learning_rate
         self.conv_param = {'stride': stride, 'pad': padding}
-        w_shape = (filters, in_channel, kernel_size, kernel_size)
+        w_shape = np.array([filters, in_channel, kernel_size, kernel_size])
         self.w = np.linspace(-0.2, 0.3, num=np.prod(w_shape)).reshape(w_shape)
         self.b = np.linspace(-0.1, 0.2, num=filters)
 
