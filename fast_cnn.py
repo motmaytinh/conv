@@ -2,9 +2,9 @@ from src_CNN.layers import *
 
 def main():
 
-    X = np.random.randn(20, 1, 28, 28)
+    X = np.random.randn(100, 1, 28, 28)
 
-    y = np.random.choice(9, 20)
+    y = np.random.choice(9, 100)
 
     print("label: ", y)
 
