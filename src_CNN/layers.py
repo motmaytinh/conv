@@ -8,6 +8,8 @@ class Conv2DFast(object):
         self.learning_rate = learning_rate
         self.conv_param = {'stride': stride, 'pad': padding}
         w_shape = (filters, in_channel, kernel_size, kernel_size)
+        # self.w = np.random.normal(size=w_shape)
+        # self.b = np.zeros(filters)
         self.w = np.linspace(-0.2, 0.3, num=np.prod(w_shape)).reshape(w_shape)
         self.b = np.linspace(-0.1, 0.2, num=filters)
 
@@ -143,16 +145,17 @@ class Model(object):
 
         for e in range(epoch):
             i = 0
+            b = 0
             print("== EPOCH: ", e + 1, "/", epoch, " ==")
             while i != n:
                 loss, dout = self.forward(Xtrain[i:i + batch_size], 'train', ytrain[i:i + batch_size])
-                # loss, dout = softmax_loss(softmax_out, ytrain[i:i + batch_size])
                 i += batch_size
+                b += 1
                 self.backward(dout)
-                if i % print_after == 0:
+                if b % print_after == 0:
                     train_acc = self.evaluate(Xtrain, ytrain)
                     val_acc = self.evaluate(Xval, yval)
-                    print("Step {}: \tloss: {} \ttrain accuracy: {} \tvalidate accuracy: {}".format(i, loss, train_acc, val_acc))
+                    print("Step {}: \tloss: {} \ttrain accuracy: {} \tvalidate accuracy: {}".format(b, loss, train_acc, val_acc))
 
     def evaluate(self, Xtest, ytest):
         i = 0
