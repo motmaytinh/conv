@@ -152,7 +152,7 @@ class Model(object):
                 if i % print_after == 0:
                     train_acc = self.evaluate(Xtrain, ytrain)
                     val_acc = self.evaluate(Xval, yval)
-                    print("Step {}: loss: {}, train accuracy: {}, validate accuracy: {}".format(i, loss, train_acc, val_acc))
+                    print("Step {}: \tloss: {} \ttrain accuracy: {} \tvalidate accuracy: {}".format(i, loss, train_acc, val_acc))
 
     def evaluate(self, Xtest, ytest):
         i = 0
