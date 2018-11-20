@@ -11,7 +11,7 @@ def main():
     fastCNN = Model()
 
     # Conv
-    fastCNN.add(Conv2DFast(filters=5, in_channel=1, kernel_size=3, stride=1, padding=1, learning_rate=0.01))
+    fastCNN.add(Conv2DFast(filters=5, in_channel=1, kernel_size=3, stride=1, padding=1, learning_rate=0.001))
 
     # ReLU
     fastCNN.add(ReLU())
@@ -26,7 +26,7 @@ def main():
     fastCNN.add(Dropout(0.5))
 
     # FC
-    fastCNN.add(FullyConnected(hidden_dim=1024, num_classes=10))
+    fastCNN.add(FullyConnected(hidden_dim=1024, num_classes=10, learning_rate=0.1))
 
     fastCNN.fit(X, y,X[:10] ,y[:10], 5, 10, 10)
 
