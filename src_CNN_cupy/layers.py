@@ -1,5 +1,4 @@
-from src_CNN_cupy.layer_utils import *
-from src_CNN_cupy.fast_layers import *
+from src_CNN.layer_utils import *
 
 learning_rate = 0.1
 
@@ -8,7 +7,9 @@ class Conv2DFast(object):
         self.learning_rate = learning_rate
         self.conv_param = {'stride': stride, 'pad': padding}
         w_shape = (filters, in_channel, kernel_size, kernel_size)
-        self.w = np.linspace(-0.2, 0.3, num=filters*in_channel*kernel_size*kernel_size).reshape(w_shape)
+        # self.w = np.random.normal(size=w_shape)
+        # self.b = np.zeros(filters)
+        self.w = np.linspace(-0.2, 0.3, num=np.prod(w_shape)).reshape(w_shape)
         self.b = np.linspace(-0.1, 0.2, num=filters)
 
     def forward(self, input):
@@ -19,19 +20,6 @@ class Conv2DFast(object):
         dx, dw, db = conv_backward_fast(dout, self.cache)
         self.w -= self.learning_rate * dw
         self.b -= self.learning_rate * db
-        return dx
-
-
-class MaxPoolingFast(object):
-    def __init__(self, pool_size=2, stride=2):
-        self.pool_param = {'stride': stride, 'pool_width': pool_size, 'pool_height': pool_size}
-
-    def forward(self, input):
-        out, self.cache = max_pool_forward_fast(input, self.pool_param)
-        return out
-
-    def backward(self, dout):
-        dx = max_pool_backward_fast(dout, self.cache)
         return dx
 
 class Conv2DNaive(object):
@@ -54,7 +42,7 @@ class Conv2DNaive(object):
         return dx
 
 
-class MaxPoolingNaive(object):
+class MaxPooling(object):
     def __init__(self, pool_size=2, stride=2):
         self.pool_param = {'stride': stride, 'pool_width': pool_size, 'pool_height': pool_size}
 
