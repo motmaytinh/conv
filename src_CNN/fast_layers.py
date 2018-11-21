@@ -7,26 +7,23 @@ def conv_forward_fast(x, w, b, conv_param):
     A fast implementation of the forward pass for a convolutional layer
     based on im2col and col2im.
     """
-    N, C, H, W = x.shape
-    num_filters, _, filter_height, filter_width = w.shape
-    stride, pad = conv_param['stride'], conv_param['pad']
-
-    # Check dimensions
-    assert (W + 2 * pad - filter_width) % stride == 0, 'width does not work'
-    assert (H + 2 * pad - filter_height) % stride == 0, 'height does not work'
-
-    # Create output
-    out_height = (H + 2 * pad - filter_height) // stride + 1
-    out_width = (W + 2 * pad - filter_width) // stride + 1
-    out = np.zeros((N, num_filters, out_height, out_width), dtype=x.dtype)
-
-    x_cols = im2col_indices(x, w.shape[2], w.shape[3], pad, stride)
-    res = w.reshape((w.shape[0], -1)).dot(x_cols) + b.reshape(-1, 1)
-
-    out = res.reshape(w.shape[0], out.shape[2], out.shape[3], x.shape[0])
-    out = out.transpose(3, 0, 1, 2)
-
-    cache = (x, w, b, conv_param, x_cols)
+    out = None
+    pad_num = conv_param['pad']
+    stride = conv_param['stride']
+    N,C,H,W = x.shape
+    F,C,HH,WW = w.shape
+    H_prime = (H+2*pad_num-HH) // stride + 1
+    W_prime = (W+2*pad_num-WW) // stride + 1
+    out = np.zeros([N,F,H_prime,W_prime])
+    #im2col
+    for im_num in range(N):
+        im = x[im_num,:,:,:]
+        im_pad = np.pad(im,((0,0),(pad_num,pad_num),(pad_num,pad_num)),'constant')
+        im_col = im2col(im_pad,HH,WW,stride)
+        filter_col = np.reshape(w,(F,-1))
+        mul = im_col.dot(filter_col.T) + b
+        out[im_num,:,:,:] = col2im(mul,H_prime,W_prime,1)
+    cache = (x, w, b, conv_param)
     return out, cache
 
 def conv_backward_fast(dout, cache):
@@ -34,18 +31,45 @@ def conv_backward_fast(dout, cache):
     A fast implementation of the backward pass for a convolutional layer
     based on im2col and col2im.
     """
-    x, w, b, conv_param, x_cols = cache
-    stride, pad = conv_param['stride'], conv_param['pad']
+    dx, dw, db = None, None, None
 
-    db = np.sum(dout, axis=(0, 2, 3))
+    x, w, b, conv_param = cache
+    pad_num = conv_param['pad']
+    stride = conv_param['stride']
+    N,C,H,W = x.shape
+    F,C,HH,WW = w.shape
+    H_prime = (H+2*pad_num-HH) // stride + 1
+    W_prime = (W+2*pad_num-WW) // stride + 1
 
-    num_filters, _, filter_height, filter_width = w.shape
-    dout_reshaped = dout.transpose(1, 2, 3, 0).reshape(num_filters, -1)
-    dw = dout_reshaped.dot(x_cols.T).reshape(w.shape)
+    dw = np.zeros(w.shape)
+    dx = np.zeros(x.shape)
+    db = np.zeros(b.shape)
 
-    dx_cols = w.reshape(num_filters, -1).T.dot(dout_reshaped)
-    dx = col2im_indices(dx_cols, x.shape, filter_height, filter_width, pad, stride)
+    # We could calculate the bias by just summing over the right dimensions
+    # Bias gradient (Sum on dout dimensions (batch, rows, cols)
+    #db = np.sum(dout, axis=(0, 2, 3))
 
+    for i in range(N):
+        im = x[i,:,:,:]
+        im_pad = np.pad(im,((0,0),(pad_num,pad_num),(pad_num,pad_num)),'constant')
+        im_col = im2col(im_pad,HH,WW,stride)
+        filter_col = np.reshape(w,(F,-1)).T
+
+        dout_i = dout[i,:,:,:]
+        dbias_sum = np.reshape(dout_i,(F,-1))
+        dbias_sum = dbias_sum.T
+
+        #bias_sum = mul + b
+        db += np.sum(dbias_sum,axis=0)
+        dmul = dbias_sum
+
+        #mul = im_col * filter_col
+        dfilter_col = (im_col.T).dot(dmul)
+        dim_col = dmul.dot(filter_col.T)
+
+        dx_padded = col2im_back(dim_col,H_prime,W_prime,stride,HH,WW,C)
+        dx[i,:,:,:] = dx_padded[:,pad_num:H+pad_num,pad_num:W+pad_num]
+        dw += np.reshape(dfilter_col.T,(F,C,HH,WW))
     return dx, dw, db
 
 
