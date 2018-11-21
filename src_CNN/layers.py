@@ -1,5 +1,4 @@
 from src_CNN.layer_utils import *
-from src_CNN.fast_layers import *
 
 learning_rate = 0.1
 
@@ -23,19 +22,6 @@ class Conv2DFast(object):
         self.b -= self.learning_rate * db
         return dx
 
-
-class MaxPoolingFast(object):
-    def __init__(self, pool_size=2, stride=2):
-        self.pool_param = {'stride': stride, 'pool_width': pool_size, 'pool_height': pool_size}
-
-    def forward(self, input):
-        out, self.cache = max_pool_forward_fast(input, self.pool_param)
-        return out
-
-    def backward(self, dout):
-        dx = max_pool_backward_fast(dout, self.cache)
-        return dx
-
 class Conv2DNaive(object):
     def __init__(self, filters=64, in_channel=1, kernel_size=3, padding=1, stride=2, learning_rate=learning_rate):
         self.learning_rate = learning_rate
@@ -56,7 +42,7 @@ class Conv2DNaive(object):
         return dx
 
 
-class MaxPoolingNaive(object):
+class MaxPooling(object):
     def __init__(self, pool_size=2, stride=2):
         self.pool_param = {'stride': stride, 'pool_width': pool_size, 'pool_height': pool_size}
 
